@@ -1,3 +1,3 @@
 # startup
 
-Hello World! More information about my project will soon be added here.
+Hello World! More info to come!
