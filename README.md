@@ -2,6 +2,8 @@
 
 The full-stack startup project that I would like to persue is an Inversus-style multiplayer online game. 
 
+![image](https://user-images.githubusercontent.com/16418680/215299802-2e8cdbd3-913e-4515-b4d7-7cc41beb01c0.png)
+
 ## The Premise
 
 Basic features would include, movement, hitboxes, and saving high scores (for now, representing the win-loss score card of the player).
@@ -10,6 +12,10 @@ If time permits, I would like to add a single player mode, which high score woul
 
 For those not familiar with _Inversus_, know that it is a minimalistic cross platform game, not yet avaliable on the browser. 
 Click here for more information/gameplay: https://www.inversusgame.com/
+
+## Website Layout
+
+![startup-website-diagram](https://user-images.githubusercontent.com/16418680/215299820-4a4aea2d-b974-4d44-821e-2396f08a4621.png)
 
 ## Possible Challenges
 
