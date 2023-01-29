@@ -1,51 +1,22 @@
-var GAME_START; // this variable will be set in game init.
+var GAME_START_T; // this variable will be set in game init.
 // value of new Date().getTime() when the game starts.
 
-window.onload = function() {
-  
-  for (var i = 0; i < 144; i++) {
-    var nextBlock = new PlayerEntity(Math.floor(Math.random() * myColors.length));
-    document.getElementById("gameEnv").appendChild(nextBlock.element);
-  }
 
-  testPhysics();
-  testLinkedList();
-  testPriorityQueue();
-}
-
-function beginGame(){
-  setInterval(loop, 50);
-
-  // debug auto reloader, reload every 60 seconds
-  setTimeout(() => { window.location.reload(); }, 30000);
-  
-  GAME_START = new Date().getTime();
-}
-
-class GameEventCard {
-  constructor(type, coords, obj, obj2 = null) {
-    this.type = type; // collision, spawn, death
+class EventCard {
+  constructor(type, coords, obj = null, origin = "local", eventT = new Date.getTime() - GAME_START_T) {
+    this.type = type; // spawn, death, change in movement (collision is one of these)
     this.x = coords[0];
     this.y = coords[1];
-    this.obj = obj; // pointer to obj
-    this.obj2 = obj2;
-  }
-}
-/*
-different entities have different schemes, some have polar coordinate shemes
+    this.z = eventT;
 
-*/
-class InputCard {
-  constructor(entity, type, startT = new Date.getTime(), endT = -1) {
-    this.parentEntity = entity; // inputter of keystroke
-    this.type = type; // keystroke of entity
-    this.startT = startT;
-    this.endT = endT;
-  }
-  end() {
-    this.endT = new Date.getTime() - GAME_START;
+    this.obj = obj; // pointer to obj
+
+    this.origin = origin; // possibly useful for future debugging, helps differentiate keyboard input, vs collisions, vs server provided events
+    
   }
 }
+
+
 
 class Entity {
   x;
@@ -89,8 +60,8 @@ var myColors = [
 
 ];
 
-// var standardBlock = document.createElement("div");
-// standardBlock.classList.add("block");
+
+var EventDeque = LinkedList(); // contains event cards. haha get it, its a deque AND a deck
 
 function fuzzColor(color, range = 40) {
   var fuzz = Math.random() * range;
@@ -98,9 +69,6 @@ function fuzzColor(color, range = 40) {
   var r = fuzzHex(color.substring(1, 3), fuzz);
   var g = fuzzHex(color.substring(3, 5), fuzz);
   var b = fuzzHex(color.substring(5, 7), fuzz);
-
-  // console.log("f: " + color);
-  // console.log('s: #' + r + g + b);
 
   return '#' + r + g + b;
 
@@ -117,15 +85,18 @@ function fuzzColor(color, range = 40) {
   }
 }
 
-// console.log('toHex ' + toHex(255));
 
-// returns the hexadecimal value of a positive int > 0 and < 256
+/**
+ * returns the hexadecimal value of a positive int > 0 and < 256
+ */
 function toHex(num) {
   var hexValues = '0123456789ABCDEF';
   return hexValues[Math.floor(num / 16)] + hexValues[Math.floor(num % 16)];
 }
 
-// console.log('toInt ' + toInt("AC"));
+/**
+ * 
+ */
 function toInt(string) {
   string = string.toUpperCase();
   var hexValues = '0123456789ABCDEF';
@@ -138,7 +109,7 @@ function toInt(string) {
 }
 
 
-
+/* BEGIN PLAYER MOVEMENT */
 
 
 let box = document.getElementById("box");
@@ -182,6 +153,8 @@ function loop() {
   box.style.top = y + "%";
 }
 
+/* END PLAYER MOVEMENT */
+
 function updatePhysics(time, pTime) {
   let dT = time - pTime;
 
@@ -199,6 +172,26 @@ function updatePhysics(time, pTime) {
 
 }
 
+window.onload = function() {
+  
+  for (var i = 0; i < 144; i++) {
+    var nextBlock = new Entity(Math.floor(Math.random() * myColors.length));
+    document.getElementById("gameEnv").appendChild(nextBlock.element);
+  }
+
+  testPhysics();
+  testLinkedList();
+  testPriorityQueue();
+}
+
+function beginGame(){
+  setInterval(loop, 50);
+
+  // debug auto reloader, reload every 60 seconds
+  // setTimeout(() => { window.location.reload(); }, 30000);
+  
+  GAME_START = new Date().getTime();
+}
 
 // On collisions:
 // (while the top of the priority queue of relevant solids ends before the next from the priority queue of listed movements, take it out of the stack)

@@ -1,81 +1,83 @@
-html, body {
+html,
+body {
   height: 100%;
-   width: 100%;
+  width: 100%;
   margin: 0px;
 
   font-family: Sans-serif;
 
-
   -webkit-touch-callout: none; /* iOS Safari */
-    -webkit-user-select: none; /* Safari */
-     -khtml-user-select: none; /* Konqueror HTML */
-       -moz-user-select: none; /* Old versions of Firefox */
-        -ms-user-select: none; /* Internet Explorer/Edge */
-            user-select: none; /* Non-prefixed version, currently
+  -webkit-user-select: none; /* Safari */
+  -khtml-user-select: none; /* Konqueror HTML */
+  -moz-user-select: none; /* Old versions of Firefox */
+  -ms-user-select: none; /* Internet Explorer/Edge */
+  user-select: none; /* Non-prefixed version, currently
                                   supported by Chrome, Edge, Opera and Firefox */
 }
 [onclick] {
-  cursor:pointer;
+  cursor: pointer;
 }
 
-.header {
-  display: fixed;
+#header {
   color: white;
-  background-color: navy;
-  height: max(50px,7%);
+  background-color: rgb(20, 20, 20);
+  display: flex;
 }
-.header > * {
-  margin: auto;
-  margin-left: 5%;
-  margin-right: 0px;
-  display: inline-block;
 
+#header > * {
+  margin: 5%;
+  margin-top: 18px;
+  margin-bottom: 18px;
+  display: inline-block;
+}
+
+.home {
+  width: 100%;
+  display: flex;
+  justify-items: center;
 }
 
 .menuOption {
-      font-size: 20px;
-  
-        padding: 15px;
-   padding-left: 20px;
-  padding-right: 20px;
-    
-          width: fit-content;
-  
-         border: 3px solid grey;
-  border-radius: 10px;
-  
-         margin: 10px;
-    margin-left: auto;
-   margin-right: auto;
+  font-size: 20px;
 
+  padding: 15px;
+  padding-left: 20px;
+  padding-right: 20px;
+
+  width: fit-content;
+
+  border: 3px solid grey;
+  border-radius: 10px;
+
+  margin: 10px;
 }
 
 .menuOption:hover {
-            cursor: pointer;
+  cursor: pointer;
   background-color: lightgrey;
 }
 
 .hidden {
-  display: none;
+  display: none !important;
 }
 
 #gameEnv {
-                 height: min(80vw,70vh);
-                  width: min(80vw,70vh);
-  
-                 border: 3px solid black;
-          border-radius: 7px;
-                 margin: auto; 
-  
-                display: grid;
-  
+  height: min(80vw, 70vh);
+  width: min(80vw, 70vh);
+
+  border: 3px solid black;
+  border-radius: 7px;
+  margin: auto;
+
+  display: grid;
+
   grid-template-columns: repeat(12, auto);
-     grid-template-rows: repeat(12, auto);
+  grid-template-rows: repeat(12, auto);
 
-               position: relative;
+  position: relative;
 }
-#gameEnv .block {}
-
+#gameEnv .block {
+}
 
 #box {
   width: 7%;
