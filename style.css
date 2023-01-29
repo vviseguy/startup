@@ -1,0 +1,88 @@
+html, body {
+  height: 100%;
+   width: 100%;
+  margin: 0px;
+
+  font-family: Sans-serif;
+
+
+  -webkit-touch-callout: none; /* iOS Safari */
+    -webkit-user-select: none; /* Safari */
+     -khtml-user-select: none; /* Konqueror HTML */
+       -moz-user-select: none; /* Old versions of Firefox */
+        -ms-user-select: none; /* Internet Explorer/Edge */
+            user-select: none; /* Non-prefixed version, currently
+                                  supported by Chrome, Edge, Opera and Firefox */
+}
+[onclick] {
+  cursor:pointer;
+}
+
+.header {
+  display: fixed;
+  color: white;
+  background-color: navy;
+  height: max(50px,7%);
+}
+.header > * {
+  margin: auto;
+  margin-left: 5%;
+  margin-right: 0px;
+  display: inline-block;
+
+}
+
+.menuOption {
+      font-size: 20px;
+  
+        padding: 15px;
+   padding-left: 20px;
+  padding-right: 20px;
+    
+          width: fit-content;
+  
+         border: 3px solid grey;
+  border-radius: 10px;
+  
+         margin: 10px;
+    margin-left: auto;
+   margin-right: auto;
+
+}
+
+.menuOption:hover {
+            cursor: pointer;
+  background-color: lightgrey;
+}
+
+.hidden {
+  display: none;
+}
+
+#gameEnv {
+                 height: min(80vw,70vh);
+                  width: min(80vw,70vh);
+  
+                 border: 3px solid black;
+          border-radius: 7px;
+                 margin: auto; 
+  
+                display: grid;
+  
+  grid-template-columns: repeat(12, auto);
+     grid-template-rows: repeat(12, auto);
+
+               position: relative;
+}
+#gameEnv .block {}
+
+
+#box {
+  width: 7%;
+  height: 7%;
+  background-color: #202020;
+  position: absolute;
+  top: 50%;
+  right: 50%;
+  border-radius: 5px;
+}
