@@ -1,3 +1,9 @@
+## Required Class Notes
+### Simon project
+
+2/8/23 - I have learned that I don't like doing html without css - even when focusing just on structure. I like to be able to center things, and arrange things using 
+`display: grid;`.
+
 # Startup
 
 The full-stack startup project that I would like to persue is an Inversus-style multiplayer online game. 
