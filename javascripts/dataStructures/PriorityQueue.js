@@ -1,39 +1,4 @@
-function testPriorityQueue() {
-  console.log("Testing PriorityQueue...");
-
-  var myHeap = new PriorityQueue([1, 2, 3], (a, b) => { return a > b; });
-
-  console.log(myHeap.toString());
-  myHeap.push(4);
-  myHeap.push(7);
-  console.log(myHeap.toString());
-  myHeap.push(7);
-  myHeap.push(7);
-  myHeap.push(7);
-  myHeap.push(19);
-  console.log(myHeap.toString());
-  console.log("pop: " + myHeap.pop());
-  console.log("pop: " + myHeap.pop());
-  console.log("pop: " + myHeap.pop());
-  console.log("pop: " + myHeap.pop());
-  console.log(myHeap.toString());
-  console.log("length: " + myHeap.getSize());
-  console.log("pop: " + myHeap.pop());
-  console.log("isEmpty: " + myHeap.isEmpty());
-  console.log("pop: " + myHeap.pop());
-  console.log(myHeap.toString());
-  console.log("pop: " + myHeap.pop());
-  console.log(myHeap.toString());
-  console.log("isEmpty: " + myHeap.isEmpty());
-  console.log("pop: " + myHeap.pop());
-  console.log(myHeap.toString());
-  console.log("pop: " + myHeap.pop());
-  console.log(myHeap.toString());
-  console.log("isEmpty: " + myHeap.isEmpty());
-
-}
-
-class PriorityQueue {
+export class PriorityQueue {
   /**
    *  Array : [a][b][c][d][e][f][g][h][i][ ][ ]... 
    *

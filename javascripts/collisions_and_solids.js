@@ -1,21 +1,12 @@
-function testPhysics() {
-
-  var p0 = new Point(0, 0, 0);
-  var p1 = new Point(1, 0, 0);
-  var p2 = new Point(0, 2, 0);
-  var p3 = new Point(3, 3, 0);
-  var otherPoint = new Point(0, 0, -1);
-  var face = new Face(p0, p2, p1, p3);
+import { LinkedList } from "./dataStructures/LinkedList.js";
+import { PriorityQueue } from "./dataStructures/PriorityQueue.js";
 
 
-  console.log("" + face.getPlaneOffset(otherPoint));
-}
+export var ALL_TIME_SOLIDS = new LinkedList();
+export var LINKED_LIST_POINTER;
 
-var ALL_TIME_SOLIDS = new LinkedList();
-var LINKED_LIST_POINTER;
-
-var COLLISION_SOON_SOLIDS = new PriorityQueue([], (a, b) => { return a.t1 < b.t1; }); // do we even need this?
-var COLLISION_RELEVANT_SOLIDS = new PriorityQueue([], (a, b) => { return a.t2 < b.t2; });
+export var COLLISION_SOON_SOLIDS = new PriorityQueue([], (a, b) => { return a.t1 < b.t1; }); // do we even need this?
+export var COLLISION_RELEVANT_SOLIDS = new PriorityQueue([], (a, b) => { return a.t2 < b.t2; });
 
 /**
   0. Load all relavant TimeSolids to the COLLISION_RELEVANT_SOLIDS (Maybe change the ALL_TIME_SOLIDS to a cross-linked list, which would sort the elments with respect to start and end times). All relevant TimeSolids are all those who have not finished by the start time of your catch-up sweep.
@@ -36,7 +27,7 @@ var COLLISION_RELEVANT_SOLIDS = new PriorityQueue([], (a, b) => { return a.t2 < 
     
   **/
 class Point { // also may also be thought of as a Vector
-  // generally, every method without "get-" modifies and returns itself.
+  // generally, every method without "get-" modifies and then returns the orignial object.
   /**
    * @param {number} x
    * @param {number} y
@@ -246,7 +237,7 @@ class TimeSolid {
   }
 
 }
-class TimeParallelepiped extends TimeSolid {
+export class TimeParallelepiped extends TimeSolid {
 
   /**  point indicies (c marks the x,y,t1 center)
      *    6-----7                           6-----7
@@ -323,7 +314,7 @@ class TimeParallelepiped extends TimeSolid {
     }
   }
 }
-class TimeCylinder extends TimeSolid { // technically it would be a TimeObliqueEllipticCylinder, but... yeah..
+export class TimeCylinder extends TimeSolid { // technically it would be a TimeObliqueEllipticCylinder, but... yeah..
   /**
    * @param {Number} x the coordinate of the center of the shape at time t1
    * @param {Number} y the coordinate of the center of the shape at time t1

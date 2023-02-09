@@ -1,26 +1,3 @@
-function testLinkedList() {
-  console.log("Testing Linked List...");
-  
-  var myList = new LinkedList([1, 2, 3]);
-  
-  console.log(myList.toString());
-  myList.pushBack(4);
-  myList.pushFront(5);
-  console.log(myList.toString());
-  myList.insert("pi", 4);
-  console.log(myList.toString());
-  console.log("pop(3): "+myList.pop(3));
-  console.log("popFront: "+myList.popFront());
-  console.log("popBack: "+myList.popBack());
-  console.log("popFront: "+myList.popFront());
-  console.log(myList.toString());
-  console.log("length: "+myList.length);
-  console.log("popBack: "+myList.popBack());
-  console.log("isEmpty: "+myList.isEmpty());
-  console.log("popBack: "+myList.popBack());
-  console.log("isEmpty: "+myList.isEmpty());
-  
-}
 class LinkedListNode {
   constructor(value, previous = null, next = null) {
     this.value = value;
@@ -28,7 +5,7 @@ class LinkedListNode {
     this.previous = previous;
   }
 }
-class LinkedList { // technically a doubly linked-list... but i dont want to type that out
+export class LinkedList { // technically a doubly linked-list... but i dont want to type that out
   length = 0;
   head = null;
   tail = null;

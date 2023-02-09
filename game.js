@@ -1,188 +1,34 @@
+import { Entity, PlayerEntity } from "./javascripts/entity.js";
+import { EventCard } from "./javascripts/event_processing.js";
+
+
+
+
 var GAME_START_T; // this variable will be set in game init.
 // value of new Date().getTime() when the game starts.
 
 
-class EventCard {
-  constructor(type, coords, obj = null, origin = "local", eventT = new Date.getTime() - GAME_START_T) {
-    this.type = type; // spawn, death, change in movement (collision is one of these)
-    this.x = coords[0];
-    this.y = coords[1];
-    this.z = eventT;
+const NUM_TEAMS = 1;
+const NUM_ENTITY_BUCKETS = NUM_TEAMS + 3;
+/**
+ * Entity buckets is an array of sets containing entities. The index refers to the team that they're on. These buckets are used for detecting collisions.
+ *  0= is used as a "all team" team. For example, invincible players are in this category. The idea is that no entity will interact with entities of this class
+ *  1= is used as a "no team" team. For example, walls are in this category. The idea is that every entity will interact with entities of this class
+ *  2= is reserved for common, spawned enemies 
+ * 
+ *  3+ are used as separate teams. For instance, each player could have their own team.
+ */
 
-    this.obj = obj; // pointer to obj
-
-    this.origin = origin; // possibly useful for future debugging, helps differentiate keyboard input, vs collisions, vs server provided events
-    
-  }
-}
-
-
-
-class Entity {
-  x;
-  y;
-  type
-  vectors;
-  constructor(x = 0, y = 0) {
-
-  }
-  getParalellapiped() {
-    return new TimeParalellapiped(x, y, w, l, t1, t2, vector);
-  }
-}
-class PlayerEntity extends Entity {
-  vectors = {
-    37: "moveLeft",
-    38: "moveRight",
-    39: [1, 0],
-  }
-  constructor(type) {
-    super();
-    this.type = type;
-    this.element = document.createElement("div");
-    this.element.classList.add("block");
-
-    this.element.style.background = fuzzColor(myColors[type]);
-  }
-
-}
-
-var blockTypes = {
-
-}
-var myColors = [
-  "#918F8F", // black
-  "#c4c4c4", // grey
-  "#e6e6e6", // white
-  // "#5432a8", // purple
-  "#a38484" // red
-  // "#37b8af", // teal
-
-];
-
-
+var entityBuckets = Array.from({ length: NUM_ENTITY_BUCKETS }, (_, i) => new Set()); // create an array with NUM_ENTITY_BUCKETS amount of sets.
 var EventDeque = LinkedList(); // contains event cards. haha get it, its a deque AND a deck
 
-function fuzzColor(color, range = 40) {
-  var fuzz = Math.random() * range;
-
-  var r = fuzzHex(color.substring(1, 3), fuzz);
-  var g = fuzzHex(color.substring(3, 5), fuzz);
-  var b = fuzzHex(color.substring(5, 7), fuzz);
-
-  return '#' + r + g + b;
-
-  /* takes a two byte string with a hexadecimal value and 
-    returns a two byte string that is a random amount off (up to the range)
-  */
-  function fuzzHex(hex, skew = Math.random() * range) {
-    var hexAsInt = toInt(hex);
-    hexAsInt += skew;
-    return toHex(Math.round(createBound(hexAsInt)));
-  }
-  function createBound(num) {
-    return (num < 0) ? 0 : (num > 255) ? 255 : num;
-  }
-}
-
-
-/**
- * returns the hexadecimal value of a positive int > 0 and < 256
- */
-function toHex(num) {
-  var hexValues = '0123456789ABCDEF';
-  return hexValues[Math.floor(num / 16)] + hexValues[Math.floor(num % 16)];
-}
-
-/**
- * 
- */
-function toInt(string) {
-  string = string.toUpperCase();
-  var hexValues = '0123456789ABCDEF';
-  var value = 0;
-  for (var i = 0; i < string.length; i++) {
-    value *= 16;
-    value += hexValues.indexOf(string[i]);
-  }
-  return value;
-}
-
-
-/* BEGIN PLAYER MOVEMENT */
-
-
-let box = document.getElementById("box");
-let x = 50;
-let y = 50;
-let dx = 1;
-let dy = 1;
-
-var keysDown = new Set();
-document.addEventListener("keydown", (e) => { keysDown.add(e.keyCode); });
-document.addEventListener("keyup", (e) => { keysDown.delete(e.keyCode); });
-
-function updateBox() {
-  if (keysDown.has(37)) { // left arrow
-    x -= 2;
-  }
-  if (keysDown.has(38)) { // up arrow
-    y -= 2;
-  }
-  if (keysDown.has(39)) { // right arrow
-    x += 2;
-  }
-  if (keysDown.has(40)) { // down arrow
-    y += 2;
-  }
-
-  box.style.left = x + "%";
-  box.style.top = y + "%";
-}
-
-let pTime = new Date().getTime();
-let time = new Date().getTime();
-function loop() {
-  pTime = time;
-  time = new Date().getTime();
-
-  // updatePhysics(time, pTime);
-  updateBox();
-
-  box.style.left = x + "%";
-  box.style.top = y + "%";
-}
-
-/* END PLAYER MOVEMENT */
-
-function updatePhysics(time, pTime) {
-  let dT = time - pTime;
-
-  x += dx * dT / 1000;
-  y += dy * dT / 1000;
-
-  dx = Math.sin(time / 1000) * 10;
-  dy = Math.cos(time / 1000) * 10;
-
-  // plot movement
-  // check for collisions -> mark them as an event
-  // run till collision
-  // apply movement changes
-  // repeat for remaining movement
-
-}
-
-window.onload = function() {
-  
+export function loadGame(){
   for (var i = 0; i < 144; i++) {
-    var nextBlock = new Entity(Math.floor(Math.random() * myColors.length));
+    var nextBlock = new Entity(Math.floor(Math.random() * myColors.length)); // fix background
     document.getElementById("gameEnv").appendChild(nextBlock.element);
   }
-
-  testPhysics();
-  testLinkedList();
-  testPriorityQueue();
 }
+
 
 function beginGame(){
   setInterval(loop, 50);
