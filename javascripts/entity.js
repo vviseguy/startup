@@ -12,7 +12,7 @@ export class Entity {
     entity_bucket_index; // the entity bucket to which this entity belongs
   
     constructor(x = 0, y = 0) {
-  
+      this.element = document.createElement("div");
     }
     getParalellapiped() {
       return new TimeParalellapiped(x, y, w, l, t1, t2, vector);

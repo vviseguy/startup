@@ -1,13 +1,13 @@
 import { Entity, PlayerEntity } from "./javascripts/entity.js";
 import { EventCard } from "./javascripts/event_processing.js";
-
-
-
+import { connectGame } from "./javascripts/server_connection.js";
+import { LinkedList } from "./javascripts/dataStructures/LinkedList.js";
+import { myColors } from "./javascripts/color_tools.js";
 
 var GAME_START_T; // this variable will be set in game init.
 // value of new Date().getTime() when the game starts.
 
-
+const GAME_ENV = document.getElementById("gameEnv");
 const NUM_TEAMS = 1;
 const NUM_ENTITY_BUCKETS = NUM_TEAMS + 3;
 /**
@@ -20,25 +20,41 @@ const NUM_ENTITY_BUCKETS = NUM_TEAMS + 3;
  */
 
 var entityBuckets = Array.from({ length: NUM_ENTITY_BUCKETS }, (_, i) => new Set()); // create an array with NUM_ENTITY_BUCKETS amount of sets.
-var EventDeque = LinkedList(); // contains event cards. haha get it, its a deque AND a deck
+var EventDeque = new LinkedList(); // contains event cards. haha get it, its a deque AND a deck
 
-export function loadGame(){
+function loadGame(){
   for (var i = 0; i < 144; i++) {
     var nextBlock = new Entity(Math.floor(Math.random() * myColors.length)); // fix background
-    document.getElementById("gameEnv").appendChild(nextBlock.element);
+    GAME_ENV.appendChild(nextBlock.element);
   }
 }
 
-
+var gameLoop;
+var scheduledGameEnd;
 function beginGame(){
-  setInterval(loop, 50);
+  if (endGame() && connectGame()) {
+    GAME_START_T = new Date().getTime();
+    gameLoop = setInterval(doFrame, 50);
 
-  // debug auto reloader, reload every 60 seconds
-  // setTimeout(() => { window.location.reload(); }, 30000);
+    // shut off the game after 500 ms
+    scheduledGameEnd = setTimeout(endGame, 5000); 
+  } else throw new Error("Could not connect game to server.");
+
   
-  GAME_START = new Date().getTime();
+}
+window.beginGame = beginGame;
+function endGame(){
+  clearTimeout(scheduledGameEnd);
+  clearInterval(gameLoop);
+  return true;
 }
 
+
+
+function doFrame(){
+  const T = GAME_START_T - new Date().getTime(); // time coord for this frame
+  updateEntities(T); // move entities to current positions, handle collisions
+}
 // On collisions:
 // (while the top of the priority queue of relevant solids ends before the next from the priority queue of listed movements, take it out of the stack)
 // Project movement paralelapipeds [priority queue of listed movements(by the time coordinate of the bottom of the box) this actually may be a priority queue of cut solids to take from before the going to our spot in the vector of movements.. that makes more sense] > [priority queue of relevant solids(by the time coordinate of the top of the box)]
