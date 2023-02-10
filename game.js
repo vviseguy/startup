@@ -1,5 +1,5 @@
-import { Entity, PlayerEntity } from "./javascripts/entity.js";
-import { EventCard } from "./javascripts/event_processing.js";
+import { Entity, PlayerEntity } from "./javascripts/Entity.js";
+import { EventCard } from "./javascripts/EventCard.js";
 import { connectGame } from "./javascripts/server_connection.js";
 import { LinkedList } from "./javascripts/dataStructures/LinkedList.js";
 import { myColors } from "./javascripts/color_tools.js";
@@ -9,7 +9,8 @@ var GAME_START_T; // this variable will be set in game init.
 
 const GAME_ENV = document.getElementById("gameEnv");
 const NUM_TEAMS = 1;
-const NUM_ENTITY_BUCKETS = NUM_TEAMS + 3;
+export const NUM_ENTITY_BUCKETS = NUM_TEAMS + 3;
+
 /**
  * Entity buckets is an array of sets containing entities. The index refers to the team that they're on. These buckets are used for detecting collisions.
  *  0= is used as a "all team" team. For example, invincible players are in this category. The idea is that no entity will interact with entities of this class
@@ -20,6 +21,9 @@ const NUM_ENTITY_BUCKETS = NUM_TEAMS + 3;
  */
 
 var entityBuckets = Array.from({ length: NUM_ENTITY_BUCKETS }, (_, i) => new Set()); // create an array with NUM_ENTITY_BUCKETS amount of sets.
+export var temporal_front = Array.from({ length: NUM_ENTITY_BUCKETS }, null);
+export var temporal_front_time; // current game time
+
 var EventDeque = new LinkedList(); // contains event cards. haha get it, its a deque AND a deck
 
 function loadGame(){
@@ -56,11 +60,26 @@ function doFrame(){
   updateEntities(T); // move entities to current positions, handle collisions
 }
 // On collisions:
-// (while the top of the priority queue of relevant solids ends before the next from the priority queue of listed movements, take it out of the stack)
-// Project movement paralelapipeds [priority queue of listed movements(by the time coordinate of the bottom of the box) this actually may be a priority queue of cut solids to take from before the going to our spot in the vector of movements.. that makes more sense] > [priority queue of relevant solids(by the time coordinate of the top of the box)]
-// -Scan the current paralelapiped for overlapping sides with the [priority queue of relevant solids] overlapping sides, mark the first point/line in time of the collision as a collision). Remember, we discard overlaps that include border lines on the top or bottom faces of solids iff the movement vectors point towards each other, (see the aside in “On generating new parallelepipeds after collisions”)
-// -FOR SAID COLLISION: Apply movement rules/changes (here we would fix moving walls to stop when they pin the character against a bigger wall) for this collision
-// -Split the two paralelapipeds (if necessary it is less efficient to just do both, but simpler), keep the concatenated ones in the relevancy queue. Put the split ends in the priority queue of listed movements (this begs the question of types.. do the paralelapipeds need to be a separate object? This may help with caching and memory, but JS is so chaotic and non-in order that it may not matter.. this may BE A QUESTION FOR DAD.
+// (while the top of the priority queue of relevant solids ends before the next from the priority queue of listed movements, take it out
+// of the stack)
+
+// Project movement paralelapipeds [priority queue of listed movements(by the time coordinate of the bottom of the box) this actually 
+// may be a priority queue of cut solids to take from before the going to our spot in the vector of movements.. that makes more sense] > 
+// [priority queue of relevant solids(by the time coordinate of the top of the box)]
+
+// -Scan the current paralelapiped for overlapping sides with the [priority queue of relevant solids] overlapping sides, mark the first 
+// point/line in time of the collision as a collision). Remember, we discard overlaps that include border lines on the top or bottom 
+// faces of solids iff the movement vectors point towards each other, (see the aside in “On generating new parallelepipeds after 
+// collisions”)
+
+// -FOR SAID COLLISION: Apply movement rules/changes (here we would fix moving walls to stop when they pin the character against a 
+// bigger wall) for this collision
+
+// -Split the two paralelapipeds (if necessary it is less efficient to just do both, but simpler), keep the concatenated ones in the 
+// relevancy queue. Put the split ends in the priority queue of listed movements (this begs the question of types.. do the 
+// paralelapipeds need to be a separate object? This may help with caching and memory, but JS is so chaotic and non-in order that it 
+// may not matter.. this may BE A QUESTION FOR DAD.
+
 // Repeat while solids remain in the queue of listed movements.
 // On detecting overlapping solids
 // 	=check to see if two bottom points (one from each shape) are within the sum of diagonals of the objects plus the maximum movement of each solid (this is an easy test to show that two shapes aren’t anywhere near touching each other).

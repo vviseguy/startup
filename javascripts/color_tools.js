@@ -39,20 +39,20 @@ export function fuzzColor(color, range = 40) {
  * returns the hexadecimal value of a positive int > 0 and < 256
  */
 function toHex(num) {
-    var hexValues = '0123456789ABCDEF';
-    return hexValues[Math.floor(num / 16)] + hexValues[Math.floor(num % 16)];
-  }
+  var hexValues = '0123456789ABCDEF';
+  return hexValues[Math.floor(num / 16)] + hexValues[Math.floor(num % 16)];
+}
   
-  /**
-   * 
-   */
-  function toInt(string) {
-    string = string.toUpperCase();
-    var hexValues = '0123456789ABCDEF';
-    var value = 0;
-    for (var i = 0; i < string.length; i++) {
-      value *= 16;
-      value += hexValues.indexOf(string[i]);
-    }
-    return value;
+/**
+ * 
+ */
+function toInt(string) {
+  string = string.toUpperCase();
+  var hexValues = '0123456789ABCDEF';
+  var value = 0;
+  for (var i = 0; i < string.length; i++) {
+    value *= 16;
+    value += hexValues.indexOf(string[i]);
   }
+  return value;
+}

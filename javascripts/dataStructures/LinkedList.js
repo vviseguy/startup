@@ -95,6 +95,9 @@ export class LinkedList { // technically a doubly linked-list... but i dont want
   back() {
     return this.tail.value;
   }
+  at(indx){
+    return this.get(indx);
+  }
   get(indx) {
     if (indx < 0) throw new Error("Linked List: get indx less than 0");
     let rtrn = this.head;
@@ -124,6 +127,9 @@ export class LinkedList { // technically a doubly linked-list... but i dont want
     this.forEach((obj) => { s += " " + obj });
 
     return s.substr(1);
+  }
+  indexOf(val){
+    ///
   }
 
   insertInOrder(obj,funct,start){

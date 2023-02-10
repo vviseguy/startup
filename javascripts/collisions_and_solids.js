@@ -26,7 +26,7 @@ export var COLLISION_RELEVANT_SOLIDS = new PriorityQueue([], (a, b) => { return 
     if these calculations prove to be too much, perhaps it would be easier to have groups of relevant solids for each section of the board, and deal with duplicates when time paralelpipeds cross into different parts of the board.
     
   **/
-class Point { // also may also be thought of as a Vector
+export class Point { // also may also be thought of as a Vector
   // generally, every method without "get-" modifies and then returns the orignial object.
   /**
    * @param {number} x
@@ -306,7 +306,7 @@ export class TimeParallelepiped extends TimeSolid {
     return rtrn;
   }
 
-  getIntersection(timeSolid) {
+  getIntersectionT(timeSolid) {
     if (timeSolid.type == "parallelepiped") {
       rejoice();
       // UNDER CONSTRUCTION //
