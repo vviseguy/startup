@@ -78,7 +78,7 @@ function generateGameBoard(game_board_text){
 var gameLoop;
 var scheduledGameEnd;
 
-var ALREADY_LOADED = true; // a temporay fix! change pls
+var ALREADY_LOADED = false; // a temporay fix! change pls
 
 function beginGame(){
   if (!ALREADY_LOADED) {
