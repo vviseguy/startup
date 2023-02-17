@@ -78,10 +78,13 @@ function generateGameBoard(game_board_text){
 var gameLoop;
 var scheduledGameEnd;
 
-
+var ALREADY_LOADED = true; // a temporay fix! change pls
 
 function beginGame(){
-  loadGame();
+  if (!ALREADY_LOADED) {
+    loadGame();
+    ALREADY_LOADED = true;
+  }
   if (endGame() && connectGame()) {
     GAME_START_T = new Date().getTime();
     doFrame();
