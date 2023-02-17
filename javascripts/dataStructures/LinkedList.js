@@ -131,7 +131,20 @@ export class LinkedList { // technically a doubly linked-list... but i dont want
   indexOf(val){
     ///
   }
-
+  iterateBackwards(condition, funct){
+    var node;
+    for (var node = this.tail; node != null && condition(node.value); node = node.previous) {
+      funct(node.value);
+    }
+    if (node != null) return node.value;
+  }
+  iterateForwards(condition, funct){
+    var node;
+    for (node = this.head; node != null && condition(node.value); node = node.next) {
+      funct(node.value);
+    }
+    if (node != null) return node.value;
+  }
   insertInOrder(obj,funct,start){
     // finds the spot for the objects in the list by binary search and inserts it
   }

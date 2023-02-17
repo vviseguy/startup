@@ -69,14 +69,22 @@ body {
   border-radius: 7px;
   margin: auto;
 
-  display: grid;
+  /* display: grid; */
 
-  grid-template-columns: repeat(12, auto);
-  grid-template-rows: repeat(12, auto);
+  /* grid-template-columns: repeat(12, auto);
+  grid-template-rows: repeat(12, auto); */
 
   position: relative;
+  overflow: hidden;
 }
-#gameEnv .block {
+
+.game-ent {
+  position: absolute;
+  z-index: 2;
+}
+.game-ent.player{
+  z-index: 3;
+  border-radius: 15%;
 }
 
 #box {

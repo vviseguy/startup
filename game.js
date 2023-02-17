@@ -1,15 +1,25 @@
-import { Entity, PlayerEntity } from "./javascripts/Entity.js";
+import { updateEntities, jostleEntities ,Entity, EntityFrame} from "./javascripts/Entity.js";
 import { EventCard } from "./javascripts/EventCard.js";
 import { connectGame } from "./javascripts/server_connection.js";
 import { LinkedList } from "./javascripts/dataStructures/LinkedList.js";
 import { myColors } from "./javascripts/color_tools.js";
+import { addKeyListeners } from "./input_control.js";
+import { GAME_BOARD_TEXT } from "./game_board.js";
 
 var GAME_START_T; // this variable will be set in game init.
 // value of new Date().getTime() when the game starts.
 
+
+
+
 const GAME_ENV = document.getElementById("gameEnv");
-const NUM_TEAMS = 1;
-export const NUM_ENTITY_BUCKETS = NUM_TEAMS + 3;
+const GAME_BOARD_FILE = "./game_board.txt";
+
+export const BOARD_TILE_WIDTH = 70;
+const THE_FIRST_SPINJITSU_MASTER = new EventCard("game_creation",3.1415,42);
+export var PLAYER_ENT;
+
+
 
 /**
  * Entity buckets is an array of sets containing entities. The index refers to the team that they're on. These buckets are used for detecting collisions.
@@ -20,32 +30,81 @@ export const NUM_ENTITY_BUCKETS = NUM_TEAMS + 3;
  *  3+ are used as separate teams. For instance, each player could have their own team.
  */
 
-var entityBuckets = Array.from({ length: NUM_ENTITY_BUCKETS }, (_, i) => new Set()); // create an array with NUM_ENTITY_BUCKETS amount of sets.
-export var temporal_front = Array.from({ length: NUM_ENTITY_BUCKETS }, null);
-export var temporal_front_time; // current game time
 
-var EventDeque = new LinkedList(); // contains event cards. haha get it, its a deque AND a deck
 
 function loadGame(){
-  for (var i = 0; i < 144; i++) {
-    var nextBlock = new Entity(Math.floor(Math.random() * myColors.length)); // fix background
-    GAME_ENV.appendChild(nextBlock.element);
-  }
+  
+  generateGameBoard(GAME_BOARD_TEXT);
+  // for (var i = 0; i < 144; i++) {
+  //   var nextBlock = new Entity("block",0);
+  //   GAME_ENV.appendChild(nextBlock.element);
+  // }
 }
 
+function generateGameBoard(game_board_text){
+  var x = 0;
+  var y = 0;
+  for (let c of game_board_text){
+    var nextFrame = new EntityFrame(x,y,0,[0,0],THE_FIRST_SPINJITSU_MASTER);
+    var nextBlock;
+    switch(c){
+      case '#':
+        nextBlock = new Entity("block", 0, nextFrame); 
+        break;
+      case '-':
+        nextBlock = new Entity("block", -1, nextFrame); 
+        nextBlock.changeColorUsingPreset(2);
+        break;
+      
+      case '\n':
+        x = 0;
+        y += BOARD_TILE_WIDTH;
+        continue;
+      case 'x':
+        PLAYER_ENT = new Entity("player", 1, new EntityFrame(x,y,0,[0,0],THE_FIRST_SPINJITSU_MASTER));
+        PLAYER_ENT.changeColor("#770000");
+        GAME_ENV.appendChild(PLAYER_ENT.getElement());
+      case ' ':
+      default:
+        nextBlock = new Entity("block", -1, nextFrame); 
+        break;
+    }
+    
+    GAME_ENV.appendChild(nextBlock.getElement());
+    x += BOARD_TILE_WIDTH;
+  }
+
+}
 var gameLoop;
 var scheduledGameEnd;
+
+
+
 function beginGame(){
+  loadGame();
   if (endGame() && connectGame()) {
     GAME_START_T = new Date().getTime();
-    gameLoop = setInterval(doFrame, 50);
+    doFrame();
+    // gameLoop = setInterval(doFrame, 200);
 
     // shut off the game after 500 ms
-    scheduledGameEnd = setTimeout(endGame, 5000); 
+    // scheduledGameEnd = setTimeout(endGame, 5000); 
   } else throw new Error("Could not connect game to server.");
 
   
+
+  addKeyListeners('A', (k) => {PLAYER_ENT.toggleKey(k);});
+  addKeyListeners('W', (k) => {PLAYER_ENT.toggleKey(k);});
+  addKeyListeners('S', (k) => {PLAYER_ENT.toggleKey(k);});
+  addKeyListeners('D', (k) => {PLAYER_ENT.toggleKey(k);});
+
+  addKeyListeners('ArrowLeft' , (k) => {PLAYER_ENT.toggleKey(k);});
+  addKeyListeners('ArrowUp'   , (k) => {PLAYER_ENT.toggleKey(k);});
+  addKeyListeners('ArrowDown' , (k) => {PLAYER_ENT.toggleKey(k);});
+  addKeyListeners('ArrowRight', (k) => {PLAYER_ENT.toggleKey(k);});
+
 }
+
 window.beginGame = beginGame;
 function endGame(){
   clearTimeout(scheduledGameEnd);

@@ -1,10 +1,12 @@
 export class EventCard {
-    constructor(type, coords, obj = null, origin = "local", eventT = new Date.getTime()) {
-      this.type = type; // string of spawn, death, change in movement (collision is one of these)
+    constructor(type, a, b, obj = null, origin = "local", eventT = new Date) {
+      this.type = type; // string of spawn, death, user_input (collision is one of these)
       
       // do we need these or can we use other things here?
-      this.x = coords[0];
-      this.y = coords[1];
+      // in case of spawn, a and b are coordinates
+      // in case of keystroke, a is the key, b is a boolean for if the keystroke is starting
+      this.a = a;
+      this.b = b;
   
       this.z = eventT;
   

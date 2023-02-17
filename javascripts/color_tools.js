@@ -1,13 +1,14 @@
 export const myColors = [
-    "#918F8F", // black
-    "#c4c4c4", // grey
     "#e6e6e6", // white
+    "#615F5F", // black
+    "#817F7F", // dark-grey
+    "#c4c4c4", // grey
     // "#5432a8", // purple
     "#a38484" // red
     // "#37b8af", // teal
   
   ];
-export function fuzzColor(color, range = 40) {
+export function fuzzColor(color, range = 25) {
     var fuzz = Math.random() * range;
   
     var r = fuzzHex(color.substring(1, 3), fuzz);
