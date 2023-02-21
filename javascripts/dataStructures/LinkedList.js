@@ -14,6 +14,7 @@ export class LinkedList { // technically a doubly linked-list... but i dont want
   }
 
   pushBack(obj) {
+    // if (obj == NULL) throw new Error("Linked List: adding NULL object");
     if (this.length == 0) {
       this.head = new LinkedListNode(obj);
       this.tail = this.head;

@@ -7,6 +7,7 @@ import { addKeyListeners } from "./input_control.js";
 import { GAME_BOARD_TEXT } from "./game_board.js";
 
 var GAME_START_T; // this variable will be set in game init.
+export var CURRENT_T;
 // value of new Date().getTime() when the game starts.
 
 
@@ -45,7 +46,7 @@ function generateGameBoard(game_board_text){
   var x = 0;
   var y = 0;
   for (let c of game_board_text){
-    var nextFrame = new EntityFrame(x,y,0,[0,0],THE_FIRST_SPINJITSU_MASTER);
+    var nextFrame = new EntityFrame(x,y,-1,[0,0],THE_FIRST_SPINJITSU_MASTER);
     var nextBlock;
     switch(c){
       case '#':
@@ -61,7 +62,7 @@ function generateGameBoard(game_board_text){
         y += BOARD_TILE_WIDTH;
         continue;
       case 'x':
-        PLAYER_ENT = new Entity("player", 1, new EntityFrame(x,y,0,[0,0],THE_FIRST_SPINJITSU_MASTER));
+        PLAYER_ENT = new Entity("player", 1, new EntityFrame(x,y,-1,[0,0],THE_FIRST_SPINJITSU_MASTER));
         PLAYER_ENT.changeColor("#770000");
         GAME_ENV.appendChild(PLAYER_ENT.getElement());
       case ' ':
@@ -87,11 +88,13 @@ function beginGame(){
   }
   if (endGame() && connectGame()) {
     GAME_START_T = new Date().getTime();
+    CURRENT_T = GAME_START_T;
+
     doFrame();
-    // gameLoop = setInterval(doFrame, 200);
+    gameLoop = setInterval(doFrame, 50);
 
     // shut off the game after 500 ms
-    // scheduledGameEnd = setTimeout(endGame, 5000); 
+    // scheduledGameEnd = setTimeout(endGame, 15000); 
   } else throw new Error("Could not connect game to server.");
 
   
@@ -118,8 +121,8 @@ function endGame(){
 
 
 function doFrame(){
-  const T = GAME_START_T - new Date().getTime(); // time coord for this frame
-  updateEntities(T); // move entities to current positions, handle collisions
+  CURRENT_T = new Date().getTime(); // time coord for this frame
+  updateEntities(CURRENT_T); // move entities to current positions, handle collisions
 }
 // On collisions:
 // (while the top of the priority queue of relevant solids ends before the next from the priority queue of listed movements, take it out

@@ -2,7 +2,7 @@ import { fuzzColor, myColors } from "./color_tools.js";
 import { Point, TimeParallelepiped, TimeCylinder } from "./collisions_and_solids.js";
 import { LinkedList } from "./dataStructures/LinkedList.js";
 import { EventCard } from "./EventCard.js";
-import { BOARD_TILE_WIDTH, PLAYER_ENT } from "../game.js";
+import { BOARD_TILE_WIDTH, PLAYER_ENT, CURRENT_T } from "../game.js";
 
 export const NUM_TEAMS = 1;
 export const NUM_ENTITY_BUCKETS = NUM_TEAMS + 3;
@@ -19,7 +19,6 @@ function convertCoords(x, y, doFrameOffset = true){
 
   var offset = [0,0];
   if (doFrameOffset && PLAYER_ENT) {
-    console.log(PLAYER_ENT);
     var center = PLAYER_ENT.getCoords(); //|| [350,350];
     offset = [50 - (center[0]+BOARD_TILE_WIDTH/2) * scalar[0], 50 - (center[1]+BOARD_TILE_WIDTH/2) * scalar[1]];
   }
@@ -28,6 +27,7 @@ function convertCoords(x, y, doFrameOffset = true){
   return [x *scalar[0] + offset[0], y*scalar[1] + offset[1]];
 }
 
+// I dont think i need this function
 export function jostleEntities(){
   for (var bucketNum = 0; bucketNum < NUM_ENTITY_BUCKETS; bucketNum++){
     for(var entity of entityBuckets[bucketNum]){
@@ -35,24 +35,30 @@ export function jostleEntities(){
     }
   }
 }
-export function updateEntities(){
-  temporal_front_time = new Date();
+export function updateEntities(DEBUG = false){
+
+  temporal_front_time = CURRENT_T;
   temporal_front = Array.from({ length: NUM_ENTITY_BUCKETS }, (_, i) => new Set());
 
+  if (DEBUG) var entityUpdateCount = 0;
   for (var bucketNum = 0; bucketNum < NUM_ENTITY_BUCKETS; bucketNum++){
     for(var entity of entityBuckets[bucketNum]){
-      console.log(entity);
+      if (DEBUG) console.log(entity);
       entity.update(temporal_front_time);
       temporal_front[bucketNum].add(entity);
       entity.updateHTMLElement();
+      if (DEBUG) entityUpdateCount++;
     }
   }
+  if (DEBUG) console.log("Updatated "+entityUpdateCount+" entities");
+  if (DEBUG) console.log(PLAYER_ENT.getCoords());
 }
 export class EntityFrame {
   constructor(x, y, t, motion, eventCard = null) {
     this.x = x;
     this.y = y;
-    this.t = t;
+    this.t = t; 
+    if (t==0) throw new Error("t is too small");
 
     this.dx = motion[0];
     this.dy = motion[1];
@@ -66,6 +72,8 @@ export class EntityFrame {
     const dt = t - this.t;
     this.x += this.dx * dt;
     this.y += this.dy * dt;
+    this.t = t;
+    return this;
   }
   isDifferentSpotThan(otherFrame){
     return this.x == otherFrame.x &&
@@ -82,14 +90,13 @@ export class EntityFrame {
     this.dx = movementVector.x;
     this.dy = movementVector.y;
   }
+  addMovement(motionArr, isFlipped = false){
+    this.dx += motionArr[0] * (isFlipped?-1:1);
+    this.dy += motionArr[1] * (isFlipped?-1:1);
+  }
 }
 export class Entity {
-  movement_vectors = {
-    37: [-1, 0],
-    38: [ 0, 1],
-    39: [ 1, 0],
-    40: [ 0,-1]
-  };
+
 
   type; // string representing the name of the type of entity
   teamNum;
@@ -100,15 +107,22 @@ export class Entity {
   /**
    * I have been thinking about removing the current frame in favor of just getting the last item off of past frames.. but it could be helpful to change it to "next frame" as a sort of buffer...
    */
-  // currentFrame; // might be possible to get rid of this, and just do .last() on the pastFrames array
-  pastFrames; // array holding past frames for this Entity
+  // nextFrame; // might be possible to get rid of this, and just do .last() on the pastFrames array
+  // frames; // array holding past frames for this Entity
 
   movement_vectors; //
   movement_restirctions; // arr of all movement restrictions in the form of vectors, movement in the which direction is not allowed.
 
   // time_paralellapiped;
 
-  constructor(type = "npc", teamNum = 1, spawnFrame = new EntityFrame(0, 0, 0, [0,0.2], null)) {
+  constructor(type = "npc", teamNum = 1, spawnFrame = new EntityFrame(0, 0, CURRENT_T, [0,0.2], null)) {
+    this.movement_vectors = {
+      "ArrowLeft":  {coords: [-1, 0], isPressed: false},
+      "ArrowUp":    {coords: [ 0,-1], isPressed: false},
+      "ArrowDown":  {coords: [ 0, 1], isPressed: false},
+      "ArrowRight": {coords: [ 1, 0], isPressed: false}
+    };
+
     this.type = type;
 
     this.teamNum = teamNum; // starts at 1 - there is no team 0
@@ -119,8 +133,10 @@ export class Entity {
 
     entityBuckets[this.entity_bucket_index].add(this);
 
-    this.currentFrame = spawnFrame;
-    
+    this.nextFrame = spawnFrame;
+    this.frames = new LinkedList();
+    this.pushNextFrame();
+
     this.element = document.createElement("div");
     this.addClass("game-ent");
     this.addClass(type);
@@ -136,14 +152,14 @@ export class Entity {
   tToFrameIndex(t){
     return Math.min(
       Math.floor(t / TIME_BETWEEN_FRAMES),
-      this.pastFrames.length
+      this.frames.length
     );
   }
   addClass(htmlClass){
     this.element.classList.add(htmlClass);
   }
   getCoords(){
-    return [this.currentFrame.x,this.currentFrame.y];
+    return [this.frames.back().x,this.frames.back().y];
   }
   changeColor(backgroundColor){
     this.element.style.background = backgroundColor;
@@ -155,14 +171,14 @@ export class Entity {
   }
   getFrameAt(t){ // get an Entity's location at a specific point in time
     const pastFramesIndx = tToFrameIndex(t);
-    return this.pastFrames.at(pastFramesIndx).clone().projectTo(t);
+    return this.frames.at(pastFramesIndx).clone().projectTo(t);
   }
   affectPath(newFrame, endT = temporal_front_time){ // called when you want to put an entity in its place (due to collision, registering input, or rectifying wrongs)
     // detect glitchy looking movement
     if (this.getFrameAt(t).isDifferentSpotThan(newFrame)) throw new Error("SOMETHING VERY BAD HAPPENED: an entity glitched");
 
     cutFramesPastT(newFrame.t); 
-    this.currentFrame = newFrame;
+    this.nextFrame = newFrame;
     updateCurrentFrame(endT);
   }
   cutFramesPastT(t){
@@ -176,10 +192,13 @@ export class Entity {
   }
   enactCollision(otherEntity, collision_t) { // collision of type EntityFrame
     cutFramesPastT(collision_t); 
-    this.pastFrames.pushBack(this.currentFrame);
 
-    this.currentFrame = this.getFrameAt(collision_t);
-    this.currentFrame.constrain(this.getCollisionConstraint(otherEntity));
+    this.pushNextFrame(); // might need changing bc nextFrame got repurposed from being currentFrame
+    
+
+    
+    this.nextFrame = this.getFrameAt(collision_t);
+    this.nextFrame.constrain(this.getCollisionConstraint(otherEntity));
 
     var otherEntity_new_path = otherEntity.getFrameAt(collision_t);
     otherEntity_new_path.constrain(otherEntity.getCollisionConstraint(this));
@@ -188,20 +207,25 @@ export class Entity {
   }
   getModel(t) {
     const frameIndx = tToFrameIndex(t);
-    const startFrame = this.pastFrames.at(frameIndx);
+    const startFrame = this.frames.at(frameIndx);
     const endFrame = 
     this.updateCurrentFrame(t);
     return new TimeParalellapiped(x, y, w, l, t1, t2, vector); // build from current frame. look for a way to cache this
   }
-
-  update(t) {
-    this.currentFrame.projectTo(t);
-
-
-  } // eventually reroute to updateCurrentFrame
-  updateCurrentFrame(t) {
-    if (t !== this.currentFrame.t) return; // skip calculations if current frame already matches the current time
-    const diffToLastFrame = t - this.currentFrame.t;
+  pushNextFrame(){
+    this.frames.pushBack(this.nextFrame);
+    this.nextFrame = null;
+  }
+  update(t = CURRENT_T) {
+    if (this.nextFrame == null) {
+      this.nextFrame = this.frames.back().clone();
+      this.nextFrame.projectTo(t);
+    }
+    this.pushNextFrame();
+  } // eventually reroute to updateCurrentFrame, this is a lazy updateCurrentFrame for when i'm testing without collisions
+  updateCurrentFrame(t = CURRENT_T) {
+    if (t !== this.frames.back().t) return; // skip calculations if current frame already matches the current time
+    const diffToLastFrame = t - this.frames.back().t;
 
     const pastFramesIndx = tToFrameIndex(t);
     const diffToSavedFrame = t - pastFramesIndx * TIME_BETWEEN_FRAMES;
@@ -209,15 +233,15 @@ export class Entity {
     var referenceFrame;
     if (diffToLastFrame >= 0 && diffToLastFrame <= diffToSavedFrame) {
       // develop current frame from most recent frame
-      referenceFrame = this.currentFrame.clone(); // may or may not need to copy
+      referenceFrame = this.frames.back().clone(); // may or may not need to copy
     } else {
       // develop current frame from most recent frame
-      referenceFrame = this.pastFrames.at(pastFramesIndx);
+      referenceFrame = this.frames.at(pastFramesIndx);
     }
     this.updateCurrentFrameFromFrame(referenceFrame);
   }
-  updateCurrentFrameFromFrame(referenceFrame, t) {
-    while (this.currentFrame.t < t){
+  updateCurrentFrameFromFrame(referenceFrame, t = CURRENT_T) {
+    while (this.frames.back().t < t){
       // default option is making it to the correct time
       var nextFrameT = t;
 
@@ -243,7 +267,7 @@ export class Entity {
     }
     // returns an iteratable object of entities who's paths have already been generated
   }
-  isKeyPressed(key){
+  isKeyPressed(key){ // the long but technically more accurate way of finding if a key is pressed.. for if the time just changed a lot..
     var lastEventWithKey = this.eventCardDeque.iterateBackwards(
         (card) => { // condition to evaluate
           !(card.type = "user_input" && card.a == key)
@@ -259,12 +283,33 @@ export class Entity {
   getElement(){
     return this.element;
   }
-  toggleKey(key){
-    var card = new EventCard("user_input", key, this.isKeyPressed(key));
+  toggleKey(key, t = new Date().getTime()){
+    // relies on the correct state being in the movement vectors
+    const keyPressed = !this.movement_vectors[key].isPressed;
+    this.movement_vectors[key].isPressed = keyPressed; // toggle whether its pressed
+    
+    // console.log(this.movement_vectors[key]);
+    // console.log(t);
+    // console.log(this.frames.back());
+    this.nextFrame = this.frames.back().clone().projectTo(t);
+    // console.log(this.nextFrame);
+    this.nextFrame.addMovement(this.movement_vectors[key].coords, !keyPressed);
+    // console.log(this.nextFrame);
+
+
+    var card = new EventCard("user_input", key, keyPressed);
     this.eventCardDeque.pushBack(card);
+
+
+    // console.log(this.frames);
+    this.update(t);
   }
-  updateHTMLElement(){
-    const coords = convertCoords(this.currentFrame.x, this.currentFrame.y);
+  updateHTMLElement(DEBUG = false){
+    var currentFrame = this.frames.back();
+    if (DEBUG) console.log(this.type);
+    if (DEBUG) console.log(this.frames);
+    if (DEBUG) console.log(currentFrame);
+    const coords = convertCoords(currentFrame.x, currentFrame.y);
     this.element.style.left = coords[0] + "%";
     this.element.style.top = coords[1] + "%";
   };
@@ -305,18 +350,7 @@ export class Entity {
 //   box.style.top = y + "%";
 // }
 
-let pTime = new Date().getTime();
-let time = new Date().getTime();
-function loop() {
-  pTime = time;
-  time = new Date().getTime();
 
-  // updatePhysics(time, pTime);
-  updateBox();
-
-  box.style.left = x + "%";
-  box.style.top = y + "%";
-}
 
 /* END PLAYER MOVEMENT */
 
