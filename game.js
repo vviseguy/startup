@@ -35,7 +35,20 @@ export var PLAYER_ENT;
 
 function loadGame(){
   
+  GAME_START_T = new Date().getTime();
+  CURRENT_T = GAME_START_T;
+  
   generateGameBoard(GAME_BOARD_TEXT);
+
+  addKeyListeners('A', (k) => {PLAYER_ENT.toggleKey(k);});
+  addKeyListeners('W', (k) => {PLAYER_ENT.toggleKey(k);});
+  addKeyListeners('S', (k) => {PLAYER_ENT.toggleKey(k);});
+  addKeyListeners('D', (k) => {PLAYER_ENT.toggleKey(k);});
+
+  addKeyListeners('ArrowLeft' , (k) => {PLAYER_ENT.toggleKey(k);});
+  addKeyListeners('ArrowUp'   , (k) => {PLAYER_ENT.toggleKey(k);});
+  addKeyListeners('ArrowDown' , (k) => {PLAYER_ENT.toggleKey(k);});
+  addKeyListeners('ArrowRight', (k) => {PLAYER_ENT.toggleKey(k);});
   // for (var i = 0; i < 144; i++) {
   //   var nextBlock = new Entity("block",0);
   //   GAME_ENV.appendChild(nextBlock.element);
@@ -85,29 +98,19 @@ function beginGame(){
   if (!ALREADY_LOADED) {
     loadGame();
     ALREADY_LOADED = true;
+
   }
   if (endGame() && connectGame()) {
-    GAME_START_T = new Date().getTime();
-    CURRENT_T = GAME_START_T;
-
     doFrame();
-    gameLoop = setInterval(doFrame, 50);
+    gameLoop = setInterval(doFrame, 5);
 
     // shut off the game after 500 ms
-    // scheduledGameEnd = setTimeout(endGame, 15000); 
+    scheduledGameEnd = setTimeout(endGame, 15000); 
   } else throw new Error("Could not connect game to server.");
 
   
 
-  addKeyListeners('A', (k) => {PLAYER_ENT.toggleKey(k);});
-  addKeyListeners('W', (k) => {PLAYER_ENT.toggleKey(k);});
-  addKeyListeners('S', (k) => {PLAYER_ENT.toggleKey(k);});
-  addKeyListeners('D', (k) => {PLAYER_ENT.toggleKey(k);});
 
-  addKeyListeners('ArrowLeft' , (k) => {PLAYER_ENT.toggleKey(k);});
-  addKeyListeners('ArrowUp'   , (k) => {PLAYER_ENT.toggleKey(k);});
-  addKeyListeners('ArrowDown' , (k) => {PLAYER_ENT.toggleKey(k);});
-  addKeyListeners('ArrowRight', (k) => {PLAYER_ENT.toggleKey(k);});
 
 }
 
@@ -122,7 +125,7 @@ function endGame(){
 
 function doFrame(){
   CURRENT_T = new Date().getTime(); // time coord for this frame
-  updateEntities(CURRENT_T); // move entities to current positions, handle collisions
+  updateEntities(); // move entities to current positions, handle collisions
 }
 // On collisions:
 // (while the top of the priority queue of relevant solids ends before the next from the priority queue of listed movements, take it out
