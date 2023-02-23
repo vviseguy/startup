@@ -10,7 +10,7 @@ var GAME_START_T; // this variable will be set in game init.
 export var CURRENT_T;
 // value of new Date().getTime() when the game starts.
 
-
+const MS_BETWEEN_FRAMES = 10;
 
 
 const GAME_ENV = document.getElementById("gameEnv");
@@ -105,7 +105,7 @@ export function beginGame(){
   }
   if (endGame() && connectGame()) {
     doFrame();
-    gameLoop = setInterval(doFrame, 5);
+    gameLoop = setInterval(doFrame, MS_BETWEEN_FRAMES);
 
     // shut off the game after 500 ms
     scheduledGameEnd = setTimeout(endGame, 15000); 

@@ -143,8 +143,8 @@ export class Entity {
     this.changeColorUsingPreset(this.entity_bucket_index);
     
     const dims = convertCoords(BOARD_TILE_WIDTH, BOARD_TILE_WIDTH, false);
-    this.element.style.width = dims[0] + "%";
-    this.element.style.height = dims[1] + "%";
+    this.element.style.width = dims[0]+0.5 + "%";
+    this.element.style.height = dims[1]+0.5 + "%";
 
     this.eventCardDeque = new LinkedList();
 
