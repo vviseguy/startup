@@ -1,6 +1,6 @@
 export function addListeners(elementId, keyCode, funct){
     addKeyListeners(keyCode, funct);
-    addMouseListeners(elementId, keyCode, funct);
+    addMouseAndTouchListeners(elementId, keyCode, funct);
 }
 
 function addKeyListeners(keyCode, funct){
@@ -29,23 +29,50 @@ function addKeyListeners(keyCode, funct){
     makeKeyDownListener();
     makeKeyUpListener();
   }
-function addMouseListeners (elementId, keyCode, funct){
+
+
+/** the touch sensing lags a little on the phone, perhaps it is because there is intense work going on drawing the touch circles, but maybe this function could be improved */
+function addMouseAndTouchListeners (elementId, keyCode, funct){
     const element = document.getElementById(elementId);
-    var isPressed = false;
+    var numTouchPoints = 0;
 
     function makeMouseDownListener() {
         element.addEventListener("mousedown", () => {
-            if (!isPressed){
-                isPressed = true;
+            console.log("mousedown");
+            if (numTouchPoints == 0){
                 funct(keyCode);
             } 
+            numTouchPoints++;
         });
     }
 
     function makeMouseUpListener() {
         document.addEventListener("mouseup", () => {
-            if (isPressed){
-                isPressed = false;
+            console.log("mouseup");
+            if (numTouchPoints > 0){
+                numTouchPoints--;
+                funct(keyCode);
+            }
+        });
+    }
+
+
+
+    function makeTouchDownListener() {
+        element.addEventListener("touchstart", () => {
+            console.log("touchbegin");
+            if (numTouchPoints == 0){
+                funct(keyCode);
+            } 
+            numTouchPoints++;
+        });
+    }
+
+    function makeTouchUpListener() {
+        document.addEventListener("touchend", () => {
+            console.log("touchend");
+            if (numTouchPoints > 0){
+                numTouchPoints--;
                 funct(keyCode);
             }
         });
@@ -53,4 +80,7 @@ function addMouseListeners (elementId, keyCode, funct){
 
     makeMouseDownListener();
     makeMouseUpListener();
+    
+    makeTouchDownListener();
+    makeTouchUpListener();
 }
