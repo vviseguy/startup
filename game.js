@@ -3,7 +3,7 @@ import { EventCard } from "./javascripts/EventCard.js";
 import { connectGame } from "./javascripts/server_connection.js";
 import { LinkedList } from "./javascripts/dataStructures/LinkedList.js";
 import { myColors } from "./javascripts/color_tools.js";
-import { addKeyListeners } from "./input_control.js";
+import { addListeners} from "./input_control.js";
 import { GAME_BOARD_TEXT } from "./game_board.js";
 
 var GAME_START_T; // this variable will be set in game init.
@@ -40,15 +40,18 @@ function loadGame(){
   
   generateGameBoard(GAME_BOARD_TEXT);
 
-  addKeyListeners('A', (k) => {PLAYER_ENT.toggleKey(k);});
-  addKeyListeners('W', (k) => {PLAYER_ENT.toggleKey(k);});
-  addKeyListeners('S', (k) => {PLAYER_ENT.toggleKey(k);});
-  addKeyListeners('D', (k) => {PLAYER_ENT.toggleKey(k);});
+  const toggleFunct = (k) => {PLAYER_ENT.toggleKey(k);};
+  addListeners('l-u-arw', 'W', toggleFunct);
+  addListeners('l-r-arw', 'D', toggleFunct);
+  addListeners('l-l-arw', 'A', toggleFunct);
+  addListeners('l-d-arw', 'S', toggleFunct);
 
-  addKeyListeners('ArrowLeft' , (k) => {PLAYER_ENT.toggleKey(k);});
-  addKeyListeners('ArrowUp'   , (k) => {PLAYER_ENT.toggleKey(k);});
-  addKeyListeners('ArrowDown' , (k) => {PLAYER_ENT.toggleKey(k);});
-  addKeyListeners('ArrowRight', (k) => {PLAYER_ENT.toggleKey(k);});
+  addListeners('r-u-arw', 'ArrowUp'   , toggleFunct);
+  addListeners('r-r-arw', 'ArrowRight', toggleFunct);
+  addListeners('r-l-arw', 'ArrowLeft' , toggleFunct);
+  addListeners('r-d-arw', 'ArrowDown' , toggleFunct);
+
+  
   // for (var i = 0; i < 144; i++) {
   //   var nextBlock = new Entity("block",0);
   //   GAME_ENV.appendChild(nextBlock.element);
