@@ -11,14 +11,19 @@ var lastPageStack = [];
 function changePage(newPageId) {
   var targetPageId = newPageId;
 
+  
   // hide last viewed page
-  if (lastPageStack.length > 0)
-    document.getElementById(lastPageStack.pop()).classList.add("hidden");
+  if (lastPageStack.length > 0) {
+    var lastViewedPage = lastPageStack[lastPageStack.length-1];
+    document.getElementById(lastViewedPage).classList.add("hidden");
+  }
+    
 
   if (targetPageId == LAST_PAGE_SHORTCUT){
-    if (lastPageStack.length > 0)
+    if (lastPageStack.length > 0) lastPageStack.pop();
+    if (lastPageStack.length > 0) {
       targetPageId = lastPageStack.pop();
-    else
+    } else
       targetPageId = HOME_PAGE_ID;
   }
 
@@ -43,7 +48,9 @@ function changePage(newPageId) {
   else 
     document.getElementById(ERROR_PAGE_ID).classList.remove("hidden");
 
-    lastPageStack.push(targetPageId);
+  lastPageStack.push(targetPageId);
+  console.log(lastPageStack);
+
 }
 
 
