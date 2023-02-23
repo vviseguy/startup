@@ -20,7 +20,7 @@ function convertCoords(x, y, doFrameOffset = true){
   var offset = [0,0];
   if (doFrameOffset && PLAYER_ENT) {
     var center = PLAYER_ENT.getCoords(); //|| [350,350];
-    offset = [50 - (center[0]+BOARD_TILE_WIDTH/2) * scalar[0], 50 - (center[1]+BOARD_TILE_WIDTH/2) * scalar[1]];
+    offset = [50 - (center[0]) * scalar[0], 50 - (center[1]) * scalar[1]];
   }
   else offset = [0,0];
 
