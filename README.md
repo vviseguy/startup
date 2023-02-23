@@ -8,7 +8,7 @@
 
 The full-stack startup project that I would like to persue is an Inversus-style multiplayer online game. 
 
-![image](https://user-images.githubusercontent.com/16418680/221051474-53191231-f4a6-4efe-8bb5-329b54ece4cf.png)
+![gameplay](https://user-images.githubusercontent.com/16418680/221053824-90cb3b4c-125c-473a-b2fe-5ec43c547648.png)
 
 ## The Premise
 
@@ -43,7 +43,7 @@ Click here for more information/gameplay: https://www.inversusgame.com/
 
 ## Website Layout
 
-![image](https://user-images.githubusercontent.com/16418680/221053824-90cb3b4c-125c-473a-b2fe-5ec43c547648.png)
+![startup-website-diagram](https://user-images.githubusercontent.com/16418680/215299820-4a4aea2d-b974-4d44-821e-2396f08a4621.png)
 
 ## Current Bugs
 
