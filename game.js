@@ -13,7 +13,7 @@ export var CURRENT_T;
 const MS_BETWEEN_FRAMES = 10;
 
 
-const GAME_ENV = document.getElementById("gameEnv");
+export const GAME_ENV = document.getElementById("gameEnv");
 const GAME_BOARD_FILE = "./game_board.txt";
 
 export const BOARD_TILE_WIDTH = 70;
@@ -41,10 +41,10 @@ function loadGame(){
   generateGameBoard(GAME_BOARD_TEXT);
 
   const toggleFunct = (k) => {PLAYER_ENT.toggleKey(k);};
-  addListeners('l-u-arw', 'W', toggleFunct);
-  addListeners('l-r-arw', 'D', toggleFunct);
-  addListeners('l-l-arw', 'A', toggleFunct);
-  addListeners('l-d-arw', 'S', toggleFunct);
+  addListeners('l-u-arw', 'KeyW', toggleFunct);
+  addListeners('l-r-arw', 'KeyD', toggleFunct);
+  addListeners('l-l-arw', 'KeyA', toggleFunct);
+  addListeners('l-d-arw', 'KeyS', toggleFunct);
 
   addListeners('r-u-arw', 'ArrowUp'   , toggleFunct);
   addListeners('r-r-arw', 'ArrowRight', toggleFunct);
@@ -80,14 +80,12 @@ function generateGameBoard(game_board_text){
       case 'x':
         PLAYER_ENT = new Entity("player", 1, new EntityFrame(x,y,-1,[0,0],THE_FIRST_SPINJITSU_MASTER));
         PLAYER_ENT.changeColor("#770000");
-        GAME_ENV.appendChild(PLAYER_ENT.getElement());
       case ' ':
       default:
         nextBlock = new Entity("block", -1, nextFrame); 
         break;
     }
     
-    GAME_ENV.appendChild(nextBlock.getElement());
     x += BOARD_TILE_WIDTH;
   }
 
@@ -108,7 +106,7 @@ export function beginGame(){
     gameLoop = setInterval(doFrame, MS_BETWEEN_FRAMES);
 
     // shut off the game after 500 ms
-    scheduledGameEnd = setTimeout(endGame, 15000); 
+    scheduledGameEnd = setTimeout(endGame, 180000); 
   } else throw new Error("Could not connect game to server.");
 
   

@@ -2,7 +2,7 @@ import { fuzzColor, myColors } from "./color_tools.js";
 import { Point, TimeParallelepiped, TimeCylinder } from "./collisions_and_solids.js";
 import { LinkedList } from "./dataStructures/LinkedList.js";
 import { EventCard } from "./EventCard.js";
-import { BOARD_TILE_WIDTH, PLAYER_ENT, CURRENT_T } from "../game.js";
+import { BOARD_TILE_WIDTH, PLAYER_ENT, CURRENT_T, GAME_ENV} from "../game.js";
 
 export const NUM_TEAMS = 1;
 export const NUM_ENTITY_BUCKETS = NUM_TEAMS + 3;
@@ -94,13 +94,20 @@ export class EntityFrame {
     this.dx += motionArr[0] * (isFlipped?-1:1);
     this.dy += motionArr[1] * (isFlipped?-1:1);
   }
+  zeroMotion(){
+    this.dx = 0;
+    this.dy = 0;
+  }
 }
+
+
 export class Entity {
 
-
-  type; // string representing the name of the type of entity
-  teamNum;
-  entity_bucket_index; // the entity bucket to which this entity belongs
+  b = "sfgsg";
+  a = "asdfa"
+  // type; // string representing the name of the type of entity
+  // teamNum;
+  // entity_bucket_index; // the entity bucket to which this entity belongs
   
   TIME_BETWEEN_FRAMES = 1000; // in ms
 
@@ -116,17 +123,37 @@ export class Entity {
   // time_paralellapiped;
 
   constructor(type = "npc", teamNum = 1, spawnFrame = new EntityFrame(0, 0, CURRENT_T, [0,0.2], null)) {
-    this.movement_vectors = {
-      "ArrowLeft":  {coords: [-1, 0], isPressed: false},
-      "ArrowUp":    {coords: [ 0,-1], isPressed: false},
-      "ArrowDown":  {coords: [ 0, 1], isPressed: false},
-      "ArrowRight": {coords: [ 1, 0], isPressed: false}
+    this.actions = {
+      "ArrowLeft":  {type: "move", coords: [-1, 0], isPressed: false},
+      "ArrowUp":    {type: "move", coords: [ 0,-1], isPressed: false},
+      "ArrowDown":  {type: "move", coords: [ 0, 1], isPressed: false},
+      "ArrowRight": {type: "move", coords: [ 1, 0], isPressed: false},
+
+      "KeyA": {type: "shoot", coords: [-1.2, 0], isPressed: false}, // I could make the bullets' speed be addative to that of the player..
+      "KeyW": {type: "shoot", coords: [ 0,-1.2], isPressed: false},
+      "KeyS": {type: "shoot", coords: [ 0, 1.2], isPressed: false},
+      "KeyD": {type: "shoot", coords: [ 1.2, 0], isPressed: false}
     };
 
     this.type = type;
 
     this.teamNum = teamNum; // starts at 1 - there is no team 0
-    this.entity_bucket_index = teamNum + 1;
+    this.entity_bucket_index = (this.teamNum + 1);
+    this.b = (this.teamNum + 1);
+
+    switch(type){
+      case "projectile":
+        console.log("making projectile");
+        this.width  = BOARD_TILE_WIDTH/8;
+        this.height = BOARD_TILE_WIDTH/8;
+        this.lifeSpan = setTimeout(() => {this.kill();}, 1500); 
+        break;
+      default:
+        this.width  = BOARD_TILE_WIDTH;
+        this.height = BOARD_TILE_WIDTH;
+    }
+
+    
 
     if (teamNum > NUM_TEAMS)
       throw new Error("Tried to add an entity to a team that does not exist.");
@@ -142,11 +169,14 @@ export class Entity {
     this.addClass(type);
     this.changeColorUsingPreset(this.entity_bucket_index);
     
-    const dims = convertCoords(BOARD_TILE_WIDTH, BOARD_TILE_WIDTH, false);
+    const dims = convertCoords(this.width, this.height, false);
     this.element.style.width = dims[0]+0.5 + "%";
     this.element.style.height = dims[1]+0.5 + "%";
+    GAME_ENV.appendChild(this.getElement());
 
     this.eventCardDeque = new LinkedList();
+
+
 
   }
   tToFrameIndex(t){
@@ -157,6 +187,10 @@ export class Entity {
   }
   addClass(htmlClass){
     this.element.classList.add(htmlClass);
+  }
+  kill(){
+    entityBuckets[this.entity_bucket_index].delete(this);
+    this.element.remove();
   }
   getCoords(){
     return [this.frames.back().x,this.frames.back().y];
@@ -210,7 +244,7 @@ export class Entity {
     const startFrame = this.frames.at(frameIndx);
     const endFrame = 
     this.updateCurrentFrame(t);
-    return new TimeParalellapiped(x, y, w, l, t1, t2, vector); // build from current frame. look for a way to cache this
+    return new TimeParallelepiped(x, y, w, l, t1, t2, vector); // build from current frame. look for a way to cache this
   }
   pushNextFrame(){
     this.frames.pushBack(this.nextFrame);
@@ -267,7 +301,7 @@ export class Entity {
     }
     // returns an iteratable object of entities who's paths have already been generated
   }
-  isKeyPressed(key){ // the long but technically more accurate way of finding if a key is pressed.. for if the time just changed a lot..
+  findIfKeyPressed(key){ // the long but technically more accurate way of finding if a key is pressed.. for if the time just changed a lot..
     var lastEventWithKey = this.eventCardDeque.iterateBackwards(
         (card) => { // condition to evaluate
           !(card.type = "user_input" && card.a == key)
@@ -285,31 +319,43 @@ export class Entity {
   }
   toggleKey(key, t = new Date().getTime()){
     // relies on the correct state being in the movement vectors
-    const keyPressed = !this.movement_vectors[key].isPressed;
-    this.movement_vectors[key].isPressed = keyPressed; // toggle whether its pressed
+    const thisKeyAction = this.actions[key]
+    const isKeyPressed = !thisKeyAction.isPressed;
+    this.actions[key].isPressed = isKeyPressed; // toggle whether its pressed
     
-    // console.log(this.movement_vectors[key]);
-    // console.log(t);
-    // console.log(this.frames.back());
-    this.nextFrame = this.frames.back().clone().projectTo(t);
-    // console.log(this.nextFrame);
-    this.nextFrame.addMovement(this.movement_vectors[key].coords, !keyPressed);
-    // console.log(this.nextFrame);
+    this.handleAction(thisKeyAction, isKeyPressed, t);
 
-
-    var card = new EventCard("user_input", key, keyPressed);
+    var card = new EventCard("user_input", key, isKeyPressed);
     this.eventCardDeque.pushBack(card);
+  
+  }
+  handleAction(action, isDownStroke, t = new Date().getTime()){
+    const newFrame = this.frames.back().clone().projectTo(t);
 
-
-    // console.log(this.frames);
-    this.update(t);
+    switch(action.type){
+      case "shoot":
+        if (isDownStroke) {
+          newFrame.zeroMotion(); // this makes the bullet speed not addative to the player movement
+          newFrame.addMovement(action.coords);
+          const bullet = new Entity("projectile", this.teamNum, newFrame);
+          console.log(bullet);
+        }
+        break;
+      case "move":
+        this.nextFrame = newFrame;
+        this.nextFrame.addMovement(action.coords, !isDownStroke);
+        this.pushNextFrame(t);
+        break;
+      default:
+        console.log("Error: undefined action type: "+action.type)
+    }
   }
   updateHTMLElement(DEBUG = false){
     var currentFrame = this.frames.back();
     if (DEBUG) console.log(this.type);
     if (DEBUG) console.log(this.frames);
     if (DEBUG) console.log(currentFrame);
-    const coords = convertCoords(currentFrame.x, currentFrame.y);
+    const coords = convertCoords(currentFrame.x - this.width/2, currentFrame.y - this.height/2);
     this.element.style.left = coords[0] + "%";
     this.element.style.top = coords[1] + "%";
   };

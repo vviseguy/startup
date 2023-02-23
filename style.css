@@ -129,16 +129,9 @@ body {
   border-radius: 7px;
   margin: auto;
   margin-top: max(auto, 30vh);
-  
-
-  /* display: grid; */
-
-  /* grid-template-columns: repeat(12, auto);
-  grid-template-rows: repeat(12, auto); */
 
   position: relative;
   overflow: hidden;
-
   
   justify-content: center;
   align-content: center;
@@ -146,6 +139,10 @@ body {
 }
 
 .game-ent {
+  position: absolute;
+  z-index: 5;
+}
+.game-ent.block {
   position: absolute;
   z-index: 2;
 }
@@ -165,6 +162,7 @@ body {
 }
 
 
+/* MOBILE ARROW CONTROLS */
 
 #left-cntlr {
   position: absolute;
@@ -214,18 +212,10 @@ body {
   border-width: 0 0 3px 3px;
   border-bottom-left-radius: 10%;
 }
-.movement-arrow:hover{
-  cursor: pointer;
-}
-.up-arrow {
-  transform: rotate(90deg);
-}
-.right-arrow {
-  transform: rotate(180deg);
-}
-.down-arrow {
-  transform: rotate(270deg);
-}
+
+.up-arrow     { transform: rotate(90deg);  }
+.right-arrow  { transform: rotate(180deg); }
+.down-arrow   { transform: rotate(270deg); }
 
 @media (min-height: 600px) and (min-width: 700px) {
   .control {
