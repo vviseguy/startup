@@ -94,7 +94,7 @@ var scheduledGameEnd;
 
 var ALREADY_LOADED = false; // a temporay fix! change pls
 
-function beginGame(){
+export function beginGame(){
   if (!ALREADY_LOADED) {
     loadGame();
     ALREADY_LOADED = true;

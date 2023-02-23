@@ -1,3 +1,9 @@
+/* GENERAL CSS */ 
+
+.hidden {
+  display: none !important;
+}
+
 html,
 body {
   height: 100%;
@@ -21,7 +27,9 @@ body {
 #header {
   color: white;
   background-color: rgb(20, 20, 20);
-  display: flex;
+  width: 100vw;
+  position: absolute;
+  z-index: 999;
 }
 
 #header > * {
@@ -29,12 +37,50 @@ body {
   margin-top: 18px;
   margin-bottom: 18px;
   display: inline-block;
+  box-sizing: content-box;
 }
 
+.page{
+  width: 100vw;
+  height: 100vh;
+  display:grid;
+  justify-content: center;
+  align-content: center;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+/* HOME SCREEN */
+
 .home {
+  margin:0;
+  padding:0;
   width: 100%;
   display: flex;
   justify-items: center;
+}
+
+#home-menu{
+  margin: auto;
+
+  height: 100vh;
+  background-color: #ebebebae; /*could be same color as the controllers*/
+  width: 35vw;
+
+  display: grid;
+  
+  justify-content: center;
+  align-content: center;
+  
+}
+
+#home-title{
+  position: relative;
+  bottom: 10vw;
+  font-size: 4.5vw;
+  width: 80vw;
+  height: 12vw;
+  text-align: center;
 }
 
 .menuOption {
@@ -49,7 +95,8 @@ body {
   border: 3px solid grey;
   border-radius: 10px;
 
-  margin: 10px;
+  margin: 10px auto;
+  
 }
 
 .menuOption:hover {
@@ -57,10 +104,20 @@ body {
   background-color: lightgrey;
 }
 
-.hidden {
-  display: none !important;
+/* ABOUT GAME SCREEN */
+
+#tutorial > *{
+  max-width: 60vw;
 }
 
+/* PLAY GAME SCREEN */
+
+#play-game{
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-content: center;
+}
 #gameEnv {
   height: min(80vw, 70vh);
   width: min(80vw, 70vh);
@@ -68,6 +125,8 @@ body {
   border: 3px solid black;
   border-radius: 7px;
   margin: auto;
+  margin-top: max(auto, 30vh);
+  
 
   /* display: grid; */
 
@@ -76,6 +135,11 @@ body {
 
   position: relative;
   overflow: hidden;
+
+  
+  justify-content: center;
+  align-content: center;
+  padding: 24px;
 }
 
 .game-ent {
@@ -96,3 +160,83 @@ body {
   right: 50%;
   border-radius: 5px;
 }
+
+
+
+#left-cntlr {
+  position: absolute;
+  left: 0px;
+  bottom: 0px;
+  float: left;
+}
+#right-cntlr {
+  
+  position: absolute;
+  right: 0px;
+  bottom: 0px;
+  float: right;
+}
+.control {
+  width: max(min(35vw, 35vh), 70px);
+  height: max(min(35vw, 35vh), 70px);
+  margin: max(min(8vw, 8vh), 8px);
+  display: grid;
+  grid-template-columns: 50% 50%;
+  grid-template-rows: 50% 50%;
+  transform: rotate(45deg);
+  z-index: 998;
+}
+.movement-arrow{
+  margin: 5%;
+  width: 85%;
+  height: 85%;
+
+  display: flex;
+  border-radius: 20%;
+  border: none;
+  /* border-bottom-left-radius:  5%; */
+
+  padding: 8% 8% 0 0;
+  background-color: #ebebebae;
+}
+.movement-arrow:after{
+  content:"";
+  width: 40%;
+  height: 40%;
+
+  margin: auto;
+
+  border-style: solid;
+  border-color: black;
+  border-width: 0 0 3px 3px;
+  border-bottom-left-radius: 10%;
+}
+.movement-arrow:hover{
+  cursor: pointer;
+}
+.up-arrow {
+  transform: rotate(90deg);
+}
+.right-arrow {
+  transform: rotate(180deg);
+}
+.down-arrow {
+  transform: rotate(270deg);
+}
+
+@media (min-height: 600px) and (min-width: 700px) {
+  .control {
+    display: none;
+  }
+}
+@media (max-height: 500px){
+  #header {
+    display: none;
+  }
+}
+/* 
+@media (hover: hover) and (pointer: fine){ 
+  .control {
+    display: none;
+  }
+} */

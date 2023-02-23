@@ -1,15 +1,29 @@
 
-var HOME_PAGE_ID = "home";
-var HEADER_ID = "header";
-var ERROR_PAGE_ID = "error";
+const HOME_PAGE_ID = "home";
+const HEADER_ID = "header";
+const ERROR_PAGE_ID = "error";
+const GAME_START_ID = "play-game";
+const LAST_PAGE_SHORTCUT = "%last-page";
 
-function changePage(targetPageId) {
-  // hide all pages
-  const allPages = document.getElementsByClassName("page");
 
-  for (var i = 0; i < allPages.length; i++) {
-    allPages[i].classList.add("hidden");
+var lastPageStack = [];
+
+function changePage(newPageId) {
+  var targetPageId = newPageId;
+
+  // hide last viewed page
+  if (lastPageStack.length > 0)
+    document.getElementById(lastPageStack.pop()).classList.add("hidden");
+
+  if (targetPageId == LAST_PAGE_SHORTCUT){
+    if (lastPageStack.length > 0)
+      targetPageId = lastPageStack.pop();
+    else
+      targetPageId = HOME_PAGE_ID;
   }
+
+  // hide all pages
+  // const allPages = document.getElementsByClassName("page");
 
   // unhide the target page
   const targetPage = document.getElementById(targetPageId);
@@ -20,18 +34,23 @@ function changePage(targetPageId) {
   else 
     document.getElementById(HEADER_ID).classList.remove("hidden");
 
+  if (targetPageId == GAME_START_ID)
+    beginGame();
+
   // if page DNE, go to error page
   if (targetPage) 
     targetPage.classList.remove("hidden");
   else 
     document.getElementById(ERROR_PAGE_ID).classList.remove("hidden");
+
+    lastPageStack.push(targetPageId);
 }
 
 
 window.onload = function() {
+  changePage("home");
   // loadGame();
   
   // debug auto reloader, reload every 60 seconds
   // setTimeout(() => { window.location.reload(); }, 30000);
 }
-
