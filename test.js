@@ -3,12 +3,12 @@
 
 // function testPhysics() {
 //
-//   var p0 = new Point(0, 0, 0);
-//   var p1 = new Point(1, 0, 0);
-//   var p2 = new Point(0, 2, 0);
-//   var p3 = new Point(3, 3, 0);
-//   var otherPoint = new Point(0, 0, -1);
-//   var face = new Face(p0, p2, p1, p3);
+//   let p0 = new Point(0, 0, 0);
+//   let p1 = new Point(1, 0, 0);
+//   let p2 = new Point(0, 2, 0);
+//   let p3 = new Point(3, 3, 0);
+//   let otherPoint = new Point(0, 0, -1);
+//   let face = new Face(p0, p2, p1, p3);
 //
 //
 //   console.log("" + face.getPlaneOffset(otherPoint));
@@ -20,7 +20,7 @@
 // function testLinkedList() {
 //     console.log("Testing Linked List...");
     
-//     var myList = new LinkedList([1, 2, 3]);
+//     let myList = new LinkedList([1, 2, 3]);
     
 //     console.log(myList.toString());
 //     myList.pushBack(4);
@@ -48,7 +48,7 @@
 // function testPriorityQueue() {
 //     console.log("Testing PriorityQueue...");
   
-//     var myHeap = new PriorityQueue([1, 2, 3], (a, b) => { return a > b; });
+//     let myHeap = new PriorityQueue([1, 2, 3], (a, b) => { return a > b; });
   
 //     console.log(myHeap.toString());
 //     myHeap.push(4);

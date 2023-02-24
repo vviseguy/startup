@@ -19,14 +19,14 @@ export class PriorityQueue {
     if (this.arr.length == 0) throw new Error("Priority Queue: cannot pop element from empty heap");
     if (this.arr.length == 1) return this.arr.pop();
 
-    var rtrn = this.arr[0];
+    let rtrn = this.arr[0];
 
-    var focusIndx = 0;
-    var parent = this.arr.pop();
+    let focusIndx = 0;
+    let parent = this.arr.pop();
 
     while (focusIndx < this.arr.length) { // technically could be while(true) but we'll keep it as is so that error will be caught, rather than cause an infininte loop
-      var leftChild = (focusIndx * 2 + 1 < this.arr.length) ? this.arr[focusIndx * 2 + 1] : null;
-      var rightChild = (focusIndx * 2 + 2 < this.arr.length) ? this.arr[focusIndx * 2 + 2] : null;
+      let leftChild = (focusIndx * 2 + 1 < this.arr.length) ? this.arr[focusIndx * 2 + 1] : null;
+      let rightChild = (focusIndx * 2 + 2 < this.arr.length) ? this.arr[focusIndx * 2 + 2] : null;
       if ((leftChild == null || this.compFunct(parent, leftChild)) &&
         (rightChild == null || this.compFunct(parent, rightChild))) { // the parent is in the right place
         this.arr[focusIndx] = parent;
@@ -45,10 +45,10 @@ export class PriorityQueue {
     this.arr.push(obj);
 
     // make sure the arr follows the heap property
-    var focusIndx = this.arr.length - 1;
+    let focusIndx = this.arr.length - 1;
 
     while (focusIndx !== 0) {
-      var parent = this.arr[((focusIndx + 1) >> 1) - 1];
+      let parent = this.arr[((focusIndx + 1) >> 1) - 1];
       if (this.compFunct(obj, parent)) { // if the new object belongs in the parent's spot, switch them
         this.arr[focusIndx] = parent;
       } else {

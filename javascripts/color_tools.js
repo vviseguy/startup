@@ -9,11 +9,11 @@ export const myColors = [
   
   ];
 export function fuzzColor(color, range = 25) {
-    var fuzz = Math.random() * range;
+    let fuzz = Math.random() * range;
   
-    var r = fuzzHex(color.substring(1, 3), fuzz);
-    var g = fuzzHex(color.substring(3, 5), fuzz);
-    var b = fuzzHex(color.substring(5, 7), fuzz);
+    let r = fuzzHex(color.substring(1, 3), fuzz);
+    let g = fuzzHex(color.substring(3, 5), fuzz);
+    let b = fuzzHex(color.substring(5, 7), fuzz);
   
     return '#' + r + g + b;
   
@@ -21,7 +21,7 @@ export function fuzzColor(color, range = 25) {
       returns a two byte string that is a random amount off (up to the range)
     */
     function fuzzHex(hex, skew = Math.random() * range) {
-      var hexAsInt = toInt(hex);
+      let hexAsInt = toInt(hex);
       hexAsInt += skew;
       return toHex(Math.round(createBound(hexAsInt)));
     }
@@ -40,7 +40,7 @@ export function fuzzColor(color, range = 25) {
  * returns the hexadecimal value of a positive int > 0 and < 256
  */
 function toHex(num) {
-  var hexValues = '0123456789ABCDEF';
+  let hexValues = '0123456789ABCDEF';
   return hexValues[Math.floor(num / 16)] + hexValues[Math.floor(num % 16)];
 }
   
@@ -49,9 +49,9 @@ function toHex(num) {
  */
 function toInt(string) {
   string = string.toUpperCase();
-  var hexValues = '0123456789ABCDEF';
-  var value = 0;
-  for (var i = 0; i < string.length; i++) {
+  let hexValues = '0123456789ABCDEF';
+  let value = 0;
+  for (let i = 0; i < string.length; i++) {
     value *= 16;
     value += hexValues.indexOf(string[i]);
   }

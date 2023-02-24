@@ -4,11 +4,11 @@ export function addListeners(elementId, keyCode, funct){
 }
 
 function addKeyListeners(keyCode, funct){
-    var isPressed = false;
+    let isPressed = false;
 
     function makeKeyDownListener() {
         document.addEventListener('keydown', (event) => {
-            var code = event.code;
+            let code = event.code;
             if (code == keyCode && !isPressed){
                 isPressed = true;
                 funct(keyCode);
@@ -18,7 +18,7 @@ function addKeyListeners(keyCode, funct){
 
     function makeKeyUpListener() {
         document.addEventListener('keyup', (event) => {
-            var code = event.code;
+            let code = event.code;
             if (code == keyCode && isPressed){
                 isPressed = false;
                 funct(keyCode);
@@ -34,7 +34,7 @@ function addKeyListeners(keyCode, funct){
 /** the touch sensing lags a little on the phone, perhaps it is because there is intense work going on drawing the touch circles, but maybe this function could be improved */
 function addMouseAndTouchListeners (elementId, keyCode, funct){
     const element = document.getElementById(elementId);
-    var numTouchPoints = 0;
+    let numTouchPoints = 0;
 
     function makeMouseDownListener() {
         element.addEventListener("mousedown", () => {

@@ -7,19 +7,19 @@ import { BOARD_TILE_WIDTH, PLAYER_ENT, CURRENT_T, GAME_ENV} from "../game.js";
 export const NUM_TEAMS = 1;
 export const NUM_ENTITY_BUCKETS = NUM_TEAMS + 3;
 
-var temporal_front = Array.from({ length: NUM_ENTITY_BUCKETS }, (_, i) => new Set());
-var temporal_front_time; // current game time
+let temporal_front = Array.from({ length: NUM_ENTITY_BUCKETS }, (_, i) => new Set());
+let temporal_front_time; // current game time
 
-var entityBuckets = Array.from({ length: NUM_ENTITY_BUCKETS }, (_, i) => new Set()); // create an array with NUM_ENTITY_BUCKETS amount of sets.
+let entityBuckets = Array.from({ length: NUM_ENTITY_BUCKETS }, (_, i) => new Set()); // create an array with NUM_ENTITY_BUCKETS amount of sets.
 
-var EventDeque = new LinkedList(); // contains event cards. haha get it, its a deque AND a deck --> do we really need a global one?
+let EventDeque = new LinkedList(); // contains event cards. haha get it, its a deque AND a deck --> do we really need a global one?
 
 function convertCoords(x, y, doFrameOffset = true){
-  var scalar = [0.1, 0.1];
+  let scalar = [0.1, 0.1];
 
-  var offset = [0,0];
+  let offset = [0,0];
   if (doFrameOffset && PLAYER_ENT) {
-    var center = PLAYER_ENT.getCoords(); //|| [350,350];
+    let center = PLAYER_ENT.getCoords(); //|| [350,350];
     offset = [50 - (center[0]) * scalar[0], 50 - (center[1]) * scalar[1]];
   }
   else offset = [0,0];
@@ -29,8 +29,8 @@ function convertCoords(x, y, doFrameOffset = true){
 
 // I dont think i need this function
 export function jostleEntities(){
-  for (var bucketNum = 0; bucketNum < NUM_ENTITY_BUCKETS; bucketNum++){
-    for(var entity of entityBuckets[bucketNum]){
+  for (let bucketNum = 0; bucketNum < NUM_ENTITY_BUCKETS; bucketNum++){
+    for(let entity of entityBuckets[bucketNum]){
       entity.updateHTMLElement();
     }
   }
@@ -40,9 +40,9 @@ export function updateEntities(DEBUG = false){
   temporal_front_time = CURRENT_T;
   temporal_front = Array.from({ length: NUM_ENTITY_BUCKETS }, (_, i) => new Set());
 
-  if (DEBUG) var entityUpdateCount = 0;
-  for (var bucketNum = 0; bucketNum < NUM_ENTITY_BUCKETS; bucketNum++){
-    for(var entity of entityBuckets[bucketNum]){
+  if (DEBUG) let entityUpdateCount = 0;
+  for (let bucketNum = 0; bucketNum < NUM_ENTITY_BUCKETS; bucketNum++){
+    for(let entity of entityBuckets[bucketNum]){
       if (DEBUG) console.log(entity);
       entity.update(temporal_front_time);
       temporal_front[bucketNum].add(entity);
@@ -84,7 +84,7 @@ export class EntityFrame {
     // just in case
     collisionVector.z = 0;
 
-    var movementVector = new Point(this.dx, this.dy, 0);
+    let movementVector = new Point(this.dx, this.dy, 0);
     movementVector = movementVector.sub(movementVector.getProjOnto(collisionVector));
 
     this.dx = movementVector.x;
@@ -103,8 +103,6 @@ export class EntityFrame {
 
 export class Entity {
 
-  b = "sfgsg";
-  a = "asdfa"
   // type; // string representing the name of the type of entity
   // teamNum;
   // entity_bucket_index; // the entity bucket to which this entity belongs
@@ -123,36 +121,37 @@ export class Entity {
   // time_paralellapiped;
 
   constructor(type = "npc", teamNum = 1, spawnFrame = new EntityFrame(0, 0, CURRENT_T, [0,0.2], null)) {
+    const movementSpeed = 0.8;
+    const projectileSpeed = 1;
     this.actions = {
-      "ArrowLeft":  {type: "move", coords: [-1, 0], isPressed: false},
-      "ArrowUp":    {type: "move", coords: [ 0,-1], isPressed: false},
-      "ArrowDown":  {type: "move", coords: [ 0, 1], isPressed: false},
-      "ArrowRight": {type: "move", coords: [ 1, 0], isPressed: false},
+      "ArrowLeft":  {type: "move", coords: [-movementSpeed, 0], isPressed: false},
+      "ArrowUp":    {type: "move", coords: [ 0,-movementSpeed], isPressed: false},
+      "ArrowDown":  {type: "move", coords: [ 0, movementSpeed], isPressed: false},
+      "ArrowRight": {type: "move", coords: [ movementSpeed, 0], isPressed: false},
 
-      "KeyA": {type: "shoot", coords: [-1.2, 0], isPressed: false}, // I could make the bullets' speed be addative to that of the player..
-      "KeyW": {type: "shoot", coords: [ 0,-1.2], isPressed: false},
-      "KeyS": {type: "shoot", coords: [ 0, 1.2], isPressed: false},
-      "KeyD": {type: "shoot", coords: [ 1.2, 0], isPressed: false}
+      "KeyA": {type: "shoot", coords: [-projectileSpeed, 0], isPressed: false}, // I could make the bullets' speed be addative to that of the player..
+      "KeyW": {type: "shoot", coords: [ 0,-projectileSpeed], isPressed: false},
+      "KeyS": {type: "shoot", coords: [ 0, projectileSpeed], isPressed: false},
+      "KeyD": {type: "shoot", coords: [ projectileSpeed, 0], isPressed: false}
     };
 
     this.type = type;
 
     this.teamNum = teamNum; // starts at 1 - there is no team 0
-    this.entity_bucket_index = (this.teamNum + 1);
-    this.b = (this.teamNum + 1);
+    this.entity_bucket_index = this.teamNum + 1;
 
+    let scalar = 1
     switch(type){
       case "projectile":
-        console.log("making projectile");
-        this.width  = BOARD_TILE_WIDTH/8;
-        this.height = BOARD_TILE_WIDTH/8;
+        scalar = 0.125;
         this.lifeSpan = setTimeout(() => {this.kill();}, 1500); 
         break;
-      default:
-        this.width  = BOARD_TILE_WIDTH;
-        this.height = BOARD_TILE_WIDTH;
+      case "player":
+        scalar = 0.8;
+        break;
     }
-
+    this.width  = BOARD_TILE_WIDTH * scalar;
+    this.height = BOARD_TILE_WIDTH * scalar;
     
 
     if (teamNum > NUM_TEAMS)
@@ -170,8 +169,8 @@ export class Entity {
     this.changeColorUsingPreset(this.entity_bucket_index);
     
     const dims = convertCoords(this.width, this.height, false);
-    this.element.style.width = dims[0]+0.5 + "%";
-    this.element.style.height = dims[1]+0.5 + "%";
+    this.element.style.width = dims[0]+0.01 + "%";
+    this.element.style.height = dims[1]+0.01 + "%";
     GAME_ENV.appendChild(this.getElement());
 
     this.eventCardDeque = new LinkedList();
@@ -234,7 +233,7 @@ export class Entity {
     this.nextFrame = this.getFrameAt(collision_t);
     this.nextFrame.constrain(this.getCollisionConstraint(otherEntity));
 
-    var otherEntity_new_path = otherEntity.getFrameAt(collision_t);
+    let otherEntity_new_path = otherEntity.getFrameAt(collision_t);
     otherEntity_new_path.constrain(otherEntity.getCollisionConstraint(this));
 
     otherEntity.affectPath(otherEntity_new_path); // this will handle the repercussions of an entity being knocked off-course. Note that the global temporal_front variable, is temporarily wrong about which entities are up-to-date. This fixes that asap.
@@ -264,7 +263,7 @@ export class Entity {
     const pastFramesIndx = tToFrameIndex(t);
     const diffToSavedFrame = t - pastFramesIndx * TIME_BETWEEN_FRAMES;
 
-    var referenceFrame;
+    let referenceFrame;
     if (diffToLastFrame >= 0 && diffToLastFrame <= diffToSavedFrame) {
       // develop current frame from most recent frame
       referenceFrame = this.frames.back().clone(); // may or may not need to copy
@@ -277,7 +276,7 @@ export class Entity {
   updateCurrentFrameFromFrame(referenceFrame, t = CURRENT_T) {
     while (this.frames.back().t < t){
       // default option is making it to the correct time
-      var nextFrameT = t;
+      let nextFrameT = t;
 
       // find the first collision,
       for (const otherEntity of this.getRelevantEntities()){
@@ -292,7 +291,7 @@ export class Entity {
     
   }
   *getRelevantEntities() { // could optomize later for locale
-    for (var i = 1; i < NUM_ENTITY_BUCKETS; i++){
+    for (let i = 1; i < NUM_ENTITY_BUCKETS; i++){
       if (i == this.entity_bucket_index) continue;
 
       for (const ent of temporal_front[i]){
@@ -302,7 +301,7 @@ export class Entity {
     // returns an iteratable object of entities who's paths have already been generated
   }
   findIfKeyPressed(key){ // the long but technically more accurate way of finding if a key is pressed.. for if the time just changed a lot..
-    var lastEventWithKey = this.eventCardDeque.iterateBackwards(
+    let lastEventWithKey = this.eventCardDeque.iterateBackwards(
         (card) => { // condition to evaluate
           !(card.type = "user_input" && card.a == key)
         },
@@ -325,7 +324,7 @@ export class Entity {
     
     this.handleAction(thisKeyAction, isKeyPressed, t);
 
-    var card = new EventCard("user_input", key, isKeyPressed);
+    let card = new EventCard("user_input", key, isKeyPressed);
     this.eventCardDeque.pushBack(card);
   
   }
@@ -351,7 +350,7 @@ export class Entity {
     }
   }
   updateHTMLElement(DEBUG = false){
-    var currentFrame = this.frames.back();
+    let currentFrame = this.frames.back();
     if (DEBUG) console.log(this.type);
     if (DEBUG) console.log(this.frames);
     if (DEBUG) console.log(currentFrame);
@@ -366,7 +365,7 @@ export class Entity {
 /* BEGIN PLAYER MOVEMENT */
 
 
-// var keysDown = new Set();
+// let keysDown = new Set();
 // document.addEventListener("keydown", (e) => {
 //   keysDown.add(e.keyCode);
 // });

@@ -5,7 +5,7 @@
 function testCrossLinkedList() {
   console.log("Testing Linked List...");
 
-  var myList = new CrossLinkedList([1, 2, 3]);
+  let myList = new CrossLinkedList([1, 2, 3]);
 
   console.log(myList.toString());
   myList.pushBack(4);
@@ -29,7 +29,7 @@ class CrossLinkedListNode {
   constructor(value, previouses, nexts, functions) {
     this.value = value;
     this.axes; // items of [sort function, .next, and .previous]
-    for (var i = 0; i = functions.length; i++) {
+    for (let i = 0; i = functions.length; i++) {
       this.axes[i] = {
         previous: previouses[i],
         next: nexts[i]
@@ -45,7 +45,7 @@ class CrossLinkedList { // technically a doubly linked-list... but i dont want t
     this.functions = functions;
     this.heads;
     this.tails;
-    for (var i = 0; i < this.numAxis; i++) {
+    for (let i = 0; i < this.numAxis; i++) {
       this.heads.pushBack(null);
       this.tails.pushBack(null);
     }
@@ -77,8 +77,8 @@ class CrossLinkedList { // technically a doubly linked-list... but i dont want t
     if (indx < 0) throw new Error("Linked List: insert indx less than 0");
     if (indx == 0) return this.pushFront(obj);
 
-    var newNode = new LinkedListNode(obj, this.head);
-    for (var i = 0; i < indx - 1; i++) {
+    let newNode = new LinkedListNode(obj, this.head);
+    for (let i = 0; i < indx - 1; i++) {
       if (newNode.previous == null) throw new Error("Linked List: insert indx greater than list length+1");
       newNode.previous = newNode.previous.next;
     }
@@ -117,7 +117,7 @@ class CrossLinkedList { // technically a doubly linked-list... but i dont want t
 
     let rtrn = this.head;
 
-    for (var i = 0; i < indx; i++) {
+    for (let i = 0; i < indx; i++) {
       if (rtrn == null) throw new Error("Linked List: pop indx greater than list length");
       rtrn = rtrn.next;
     }
@@ -138,7 +138,7 @@ class CrossLinkedList { // technically a doubly linked-list... but i dont want t
   get(indx) {
     if (indx < 0) throw new Error("Linked List: get indx less than 0");
     let rtrn = this.head;
-    for (var i = 0; i < indx; i++) {
+    for (let i = 0; i < indx; i++) {
       if (rtrn == null) throw new Error("Linked List: get indx greater than list length");
       rtrn = rtrn.next;
     }
@@ -153,7 +153,7 @@ class CrossLinkedList { // technically a doubly linked-list... but i dont want t
   }
 
   forEach(index, f) {
-    for (var node = this.dimension[index].head; node != null; node = node.next) {
+    for (let node = this.dimension[index].head; node != null; node = node.next) {
       f(node.value);
     }
   }
@@ -168,7 +168,7 @@ class CrossLinkedList { // technically a doubly linked-list... but i dont want t
   }
 
   insertInOrder(obj, start = this.head) {
-    var newNode = new CrossLinkedListNode(obj);
+    let newNode = new CrossLinkedListNode(obj);
 
     this.axes.forEach((axis) => {
       /**
@@ -176,7 +176,7 @@ class CrossLinkedList { // technically a doubly linked-list... but i dont want t
        *  = 0 the objects are a match in priority
        *  < 0 the second item has priority
        */
-      var match = axis.function(obj,);
+      let match = axis.function(obj,);
       // insert newNode with the function
     });
     // finds the spot for the objects in the list by binary search and inserts it

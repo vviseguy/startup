@@ -38,8 +38,8 @@ export class LinkedList { // technically a doubly linked-list... but i dont want
     if (indx < 0) throw new Error("Linked List: insert indx less than 0");
     if (indx == 0) return this.pushFront(obj);
 
-    var newNode = new LinkedListNode(obj, this.head);
-    for (var i = 0; i < indx - 1; i++) {
+    let newNode = new LinkedListNode(obj, this.head);
+    for (let i = 0; i < indx - 1; i++) {
       if (newNode.previous == null) throw new Error("Linked List: insert indx greater than list length+1");
       newNode.previous = newNode.previous.next;
     }
@@ -78,7 +78,7 @@ export class LinkedList { // technically a doubly linked-list... but i dont want
 
     let rtrn = this.head;
 
-    for (var i = 0; i < indx; i++) {
+    for (let i = 0; i < indx; i++) {
       if (rtrn == null) throw new Error("Linked List: pop indx greater than list length");
       rtrn = rtrn.next;
     }
@@ -102,7 +102,7 @@ export class LinkedList { // technically a doubly linked-list... but i dont want
   get(indx) {
     if (indx < 0) throw new Error("Linked List: get indx less than 0");
     let rtrn = this.head;
-    for (var i = 0; i < indx; i++) {
+    for (let i = 0; i < indx; i++) {
       if (rtrn == null) throw new Error("Linked List: get indx greater than list length");
       rtrn = rtrn.next;
     }
@@ -117,7 +117,7 @@ export class LinkedList { // technically a doubly linked-list... but i dont want
   }
 
   forEach(f) {
-    for (var node = this.head; node != null; node = node.next) {
+    for (let node = this.head; node != null; node = node.next) {
       f(node.value);
     }
   }
@@ -133,14 +133,14 @@ export class LinkedList { // technically a doubly linked-list... but i dont want
     ///
   }
   iterateBackwards(condition, funct){
-    var node;
-    for (var node = this.tail; node != null && condition(node.value); node = node.previous) {
+    let node;
+    for (let node = this.tail; node != null && condition(node.value); node = node.previous) {
       funct(node.value);
     }
     if (node != null) return node.value;
   }
   iterateForwards(condition, funct){
-    var node;
+    let node;
     for (node = this.head; node != null && condition(node.value); node = node.next) {
       funct(node.value);
     }

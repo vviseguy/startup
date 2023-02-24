@@ -2,11 +2,11 @@ import { LinkedList } from "./dataStructures/LinkedList.js";
 import { PriorityQueue } from "./dataStructures/PriorityQueue.js";
 
 
-export var ALL_TIME_SOLIDS = new LinkedList();
-export var LINKED_LIST_POINTER;
+export let ALL_TIME_SOLIDS = new LinkedList();
+export let LINKED_LIST_POINTER;
 
-export var COLLISION_SOON_SOLIDS = new PriorityQueue([], (a, b) => { return a.t1 < b.t1; }); // do we even need this?
-export var COLLISION_RELEVANT_SOLIDS = new PriorityQueue([], (a, b) => { return a.t2 < b.t2; });
+export let COLLISION_SOON_SOLIDS = new PriorityQueue([], (a, b) => { return a.t1 < b.t1; }); // do we even need this?
+export let COLLISION_RELEVANT_SOLIDS = new PriorityQueue([], (a, b) => { return a.t2 < b.t2; });
 
 /**
   0. Load all relavant TimeSolids to the COLLISION_RELEVANT_SOLIDS (Maybe change the ALL_TIME_SOLIDS to a cross-linked list, which would sort the elments with respect to start and end times). All relevant TimeSolids are all those who have not finished by the start time of your catch-up sweep.
@@ -80,7 +80,7 @@ export class Point { // also may also be thought of as a Vector
     return this;
   }
   getProjOnto(vector) {
-    var v = vector.copy().normalize();
+    let v = vector.copy().normalize();
     return v.scalarMultiply(this.dot(v));
   }
   getNorm() {
@@ -135,9 +135,9 @@ class Line {
     }
   }
   determinant(line2, line3) {
-    var l1 = this.vector;
-    var l2 = line2.vector;
-    var l3 = line3.vector;
+    let l1 = this.vector;
+    let l2 = line2.vector;
+    let l3 = line3.vector;
     return l1.x * l2.y * l3.z
       + l2.x * l3.z * l1.z
       + l3.x * l1.z * l2.z
@@ -152,14 +152,14 @@ class Line {
      *  We want the last scalar times the l1xl2 vector
      */
     
-    var l1 = this.vector;
-    var l2 = otherLine.vector;
-    var l3 = l1.copy().cross(l2);
+    let l1 = this.vector;
+    let l2 = otherLine.vector;
+    let l3 = l1.copy().cross(l2);
 
-    var v = this.point1.copy().sub(otherLine.point1);
+    let v = this.point1.copy().sub(otherLine.point1);
 
     // using cramer's rule
-    var thirdScalar = v.determinant(l1, l2) / l3.determinant(l1, l2);
+    let thirdScalar = v.determinant(l1, l2) / l3.determinant(l1, l2);
 
     return l3.scalarMultiply(thirdScalar).getNorm();
   }
@@ -297,8 +297,8 @@ export class TimeParallelepiped extends TimeSolid {
 
   }
   getFaces() {
-    var rtrn = [];
-    for (var i = 0; i < 6; i++) {
+    let rtrn = [];
+    for (let i = 0; i < 6; i++) {
       const pnts = pointsInFaces[i];
       this.faces[i] = this.faces[i] | new Face(pnts[0], pnts[1], pnts[2], pnts[3]);
       rtrn.push(this.faces[i]); // TODO, wanted this to be yields

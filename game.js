@@ -6,8 +6,8 @@ import { myColors } from "./javascripts/color_tools.js";
 import { addListeners} from "./input_control.js";
 import { GAME_BOARD_TEXT } from "./game_board.js";
 
-var GAME_START_T; // this variable will be set in game init.
-export var CURRENT_T;
+let GAME_START_T; // this variable will be set in game init.
+export let CURRENT_T;
 // value of new Date().getTime() when the game starts.
 
 const MS_BETWEEN_FRAMES = 10;
@@ -18,7 +18,7 @@ const GAME_BOARD_FILE = "./game_board.txt";
 
 export const BOARD_TILE_WIDTH = 70;
 const THE_FIRST_SPINJITSU_MASTER = new EventCard("game_creation",3.1415,42);
-export var PLAYER_ENT;
+export let PLAYER_ENT;
 
 
 
@@ -52,18 +52,18 @@ function loadGame(){
   addListeners('r-d-arw', 'ArrowDown' , toggleFunct);
 
   
-  // for (var i = 0; i < 144; i++) {
-  //   var nextBlock = new Entity("block",0);
+  // for (let i = 0; i < 144; i++) {
+  //   let nextBlock = new Entity("block",0);
   //   GAME_ENV.appendChild(nextBlock.element);
   // }
 }
 
 function generateGameBoard(game_board_text){
-  var x = 0;
-  var y = 0;
+  let x = 0;
+  let y = 0;
   for (let c of game_board_text){
-    var nextFrame = new EntityFrame(x,y,-1,[0,0],THE_FIRST_SPINJITSU_MASTER);
-    var nextBlock;
+    let nextFrame = new EntityFrame(x,y,-1,[0,0],THE_FIRST_SPINJITSU_MASTER);
+    let nextBlock;
     switch(c){
       case '#':
         nextBlock = new Entity("block", 0, nextFrame); 
@@ -90,10 +90,10 @@ function generateGameBoard(game_board_text){
   }
 
 }
-var gameLoop;
-var scheduledGameEnd;
+let gameLoop;
+let scheduledGameEnd;
 
-var ALREADY_LOADED = false; // a temporay fix! change pls
+let ALREADY_LOADED = false; // a temporay fix! change pls
 
 export function beginGame(){
   if (!ALREADY_LOADED) {

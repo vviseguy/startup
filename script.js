@@ -6,18 +6,16 @@ const GAME_START_ID = "play-game";
 const LAST_PAGE_SHORTCUT = "%last-page";
 
 
-var lastPageStack = [];
+let lastPageStack = [];
 
 function changePage(newPageId) {
-  var targetPageId = newPageId;
-
+  let targetPageId = newPageId;
   
   // hide last viewed page
   if (lastPageStack.length > 0) {
-    var lastViewedPage = lastPageStack[lastPageStack.length-1];
+    let lastViewedPage = lastPageStack[lastPageStack.length-1];
     document.getElementById(lastViewedPage).classList.add("hidden");
   }
-    
 
   if (targetPageId == LAST_PAGE_SHORTCUT){
     if (lastPageStack.length > 0) lastPageStack.pop();
