@@ -40,7 +40,7 @@ export function updateEntities(DEBUG = false){
   temporal_front_time = CURRENT_T;
   temporal_front = Array.from({ length: NUM_ENTITY_BUCKETS }, (_, i) => new Set());
 
-  if (DEBUG) let entityUpdateCount = 0;
+  if (DEBUG) var entityUpdateCount = 0;
   for (let bucketNum = 0; bucketNum < NUM_ENTITY_BUCKETS; bucketNum++){
     for(let entity of entityBuckets[bucketNum]){
       if (DEBUG) console.log(entity);
