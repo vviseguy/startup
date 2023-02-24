@@ -1,8 +1,12 @@
 ## Required Class Notes
-### Simon project
 
-2/8/23 - I have learned that I don't like doing html without css - even when focusing just on structure. I like to be able to center things, and arrange things using 
+### Things I have learned in the Simon project
+
+* I don't like doing html without css - even when focusing just on structure. I like to be able to center things, and arrange things using 
 `display: grid;`.
+* That I can spend way too much time on css...
+* `box-sizing: border-box;` is a very useful change to make.
+* Box-shadows have a lot of applications
 
 # Startup
 
