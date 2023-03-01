@@ -149,4 +149,54 @@ export class LinkedList { // technically a doubly linked-list... but i dont want
   insertInOrder(obj,funct,start){
     // finds the spot for the objects in the list by binary search and inserts it
   }
+  split(funct){ // splits the array at the next of the first node (from the back) where the function returns true
+    let node;
+
+    let newLength = 0
+    for (node = this.tail; node != null; node = node.previous) {
+      if (funct(node.value)) break;
+      newLength++;
+    }
+    // go back one
+    node = node.next;
+    
+    let newList = new LinkedList();
+
+    if(node == null) return newList;
+
+    // set new list
+    newList.head = node;
+    newList.tail = this.tail;
+    newList.length = newLength;
+    
+    // fix old list
+    if (node.previous === null) {
+      this.head = null;
+      this.tail = null;
+      this.length = 0;
+    } else {
+      this.tail = node.previous;
+      node.previous.next = null;
+      this.length -= newLength;
+    }
+
+    // get rid of conenction between the two lists
+    node.previous = null;
+    
+  }
+  
+
+  join(otherList){
+    if (this.length == 0) {
+      this.head   = otherList.head;
+      this.tail   = otherList.tail;
+      this.length = otherList.length;
+    }
+    else if (otherList.length > 0){
+      this.tail.next = otherList.head;
+      otherList.head.previous = this.tail;
+      this.tail = otherList.tail;
+      this.length += otherList.length;
+    }
+  }
 }

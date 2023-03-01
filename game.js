@@ -21,18 +21,6 @@ const THE_FIRST_SPINJITSU_MASTER = new EventCard("game_creation",3.1415,42);
 export let PLAYER_ENT;
 
 
-
-/**
- * Entity buckets is an array of sets containing entities. The index refers to the team that they're on. These buckets are used for detecting collisions.
- *  0= is used as a "all team" team. For example, invincible players are in this category. The idea is that no entity will interact with entities of this class
- *  1= is used as a "no team" team. For example, walls are in this category. The idea is that every entity will interact with entities of this class
- *  2= is reserved for common, spawned enemies 
- * 
- *  3+ are used as separate teams. For instance, each player could have their own team.
- */
-
-
-
 function loadGame(){
   
   GAME_START_T = new Date().getTime();

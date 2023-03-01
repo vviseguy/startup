@@ -7,10 +7,21 @@ import { BOARD_TILE_WIDTH, PLAYER_ENT, CURRENT_T, GAME_ENV} from "../game.js";
 export const NUM_TEAMS = 1;
 export const NUM_ENTITY_BUCKETS = NUM_TEAMS + 3;
 
-let temporal_front = Array.from({ length: NUM_ENTITY_BUCKETS }, (_, i) => new Set());
 let temporal_front_time; // current game time
+let temporal_front = Array.from({ length: NUM_ENTITY_BUCKETS }, (_, i) => new Set());
 
 let entityBuckets = Array.from({ length: NUM_ENTITY_BUCKETS }, (_, i) => new Set()); // create an array with NUM_ENTITY_BUCKETS amount of sets.
+/**
+ * Entity buckets is an array of sets containing entities. The index refers to the team that they're on. These buckets are used for detecting collisions.
+ *  0= is used as a "all team" team. For example, invincible players are in this category. The idea is that no entity will interact with entities of this class
+ *  1= is used as a "no team" team. For example, walls are in this category. The idea is that every entity will interact with entities of this class
+ *  2= is reserved for the team of common, spawned enemies 
+ * 
+ *  3+ are used as separate teams. For instance, each player could have their own team.
+ * 
+ * 
+ * temporal_front is of the same organization
+ */
 
 let EventDeque = new LinkedList(); // contains event cards. haha get it, its a deque AND a deck --> do we really need a global one?
 
@@ -41,17 +52,25 @@ export function updateEntities(DEBUG = false){
   temporal_front = Array.from({ length: NUM_ENTITY_BUCKETS }, (_, i) => new Set());
 
   if (DEBUG) var entityUpdateCount = 0;
-  for (let bucketNum = 0; bucketNum < NUM_ENTITY_BUCKETS; bucketNum++){
+  for (let bucketNum = 1; bucketNum < NUM_ENTITY_BUCKETS; bucketNum++){
     for(let entity of entityBuckets[bucketNum]){
       if (DEBUG) console.log(entity);
-      entity.update(temporal_front_time);
-      temporal_front[bucketNum].add(entity);
-      entity.updateHTMLElement();
+      entity.update();
+
       if (DEBUG) entityUpdateCount++;
     }
   }
   if (DEBUG) console.log("Updatated "+entityUpdateCount+" entities");
   if (DEBUG) console.log(PLAYER_ENT.getCoords());
+}
+
+export class Collision extends EventCard{
+  constructor(vectorPointThing, otherParent, flipped = false){
+    super("collision", vectorPointThing.x * (flipped?-1:1), vectorPointThing.y * (flipped?-1:1), otherParent, "local", vectorPointThing.z);
+  }
+  asVector(){
+    new Point(super.a, super.b, 0);
+  }
 }
 export class EntityFrame {
   constructor(x, y, t, motion, eventCard = null) {
@@ -145,9 +164,16 @@ export class Entity {
       case "projectile":
         scalar = 0.125;
         this.lifeSpan = setTimeout(() => {this.kill();}, 1500); 
+        this.onCollision = [
+          this.kill
+        ]; 
         break;
       case "player":
         scalar = 0.8;
+        this.onCollision = [
+          this.handleCollisionTree,
+          (a, collidingObj, collision) => collidingObj.handleCollisionTree(collision)
+        ]; // normal physics action
         break;
     }
     this.width  = BOARD_TILE_WIDTH * scalar;
@@ -160,7 +186,7 @@ export class Entity {
     entityBuckets[this.entity_bucket_index].add(this);
 
     this.nextFrame = spawnFrame;
-    this.frames = new LinkedList();
+    this.pastFrames = new LinkedList();
     this.pushNextFrame();
 
     this.element = document.createElement("div");
@@ -174,14 +200,11 @@ export class Entity {
     GAME_ENV.appendChild(this.getElement());
 
     this.eventCardDeque = new LinkedList();
-
-
-
   }
   tToFrameIndex(t){
     return Math.min(
       Math.floor(t / TIME_BETWEEN_FRAMES),
-      this.frames.length
+      this.pastFrames.length
     );
   }
   addClass(htmlClass){
@@ -190,9 +213,10 @@ export class Entity {
   kill(){
     entityBuckets[this.entity_bucket_index].delete(this);
     this.element.remove();
+    delete this;
   }
   getCoords(){
-    return [this.frames.back().x,this.frames.back().y];
+    return [this.pastFrames.back().x,this.pastFrames.back().y];
   }
   changeColor(backgroundColor){
     this.element.style.background = backgroundColor;
@@ -204,7 +228,7 @@ export class Entity {
   }
   getFrameAt(t){ // get an Entity's location at a specific point in time
     const pastFramesIndx = tToFrameIndex(t);
-    return this.frames.at(pastFramesIndx).clone().projectTo(t);
+    return this.pastFrames.at(pastFramesIndx).clone().projectTo(t);
   }
   affectPath(newFrame, endT = temporal_front_time){ // called when you want to put an entity in its place (due to collision, registering input, or rectifying wrongs)
     // detect glitchy looking movement
@@ -214,18 +238,69 @@ export class Entity {
     this.nextFrame = newFrame;
     updateCurrentFrame(endT);
   }
+  removeCollision(t){
+    cutFramesPastT(t);
+
+  }
   cutFramesPastT(t){
-    while(pastFrames.back().t > t) pastFrames.popBack();
+    // cut off heads, return those frames
+    return this.pastFrames.split((frame) => frame.t < t);
+    // while(pastFrames.back().t > t) {
+    //   let oldFrame = pastFrames.popBack();
+    //   let spawningEvent = oldFrame.EventCard;
+    //   if (spawningEvent.type === "collision") spawningEvent.obj.removeCollision(oldFrame.t);
+    // }
   }
-  getCollisionT(otherEntity) {
-    return this.getModel().getIntersectionT(otherEntity.getModel());
+  trimCollisionsFromCutFrames(oldFrames){ // returns a list of objects whose braches have been cut
+    let objsWithCutBranches = new LinkedList([this]);
+
+    // cut off old collision trees
+    for (let oldFrame of oldFrames){
+      let spawningEvent = oldFrame.EventCard;
+      let cutFrames = spawningEvent.obj.cutFramesPastT(oldFrame.t);
+      objsWithCutBranches.join(spawningEvent.obj.trimCollisionsFromCutFrames(cutFrames));
+    }
+
+    return objsWithCutBranches;
   }
-  getCollisionConstraint(otherEntity) {
-    return this.getModel().getIntersectionCosntraint(otherEntity.getModel());
+  // getCollisionT(otherEntity) {
+  //   return this.getModel().getIntersectionT(otherEntity.getModel());
+  // }
+  // getCollisionConstraint(otherEntity) {
+  //   return this.getModel().getIntersectionCosntraint(otherEntity.getModel());
+  // }
+  ratifyNextFrame(){ // proposes frames, and handles collisions until the nextFrame is valid
+    let result = this.checkForCollisions();
+    // handles collisions up until current time, leaving nextFrame as the valid next frame
+    if (result != null){
+      let [collision, ...otherCollision] = result;
+      const collidingObject = collision.obj;
+      for(let action of this.onCollision){
+        action(collision, collidingObject, otherCollision); 
+      }
+    }
+  }
+  handleCollisionTree(collision){
+    let collisionT = collision.t;
+    let oldFrames = cutFramesPastT(collisionT); 
+
+    // add movement up until the collision
+    this.nextFrame = this.pastFrames.back().copy().projectTo(collisionT);
+    this.pushNextFrame();
+
+    // cut off old collision trees
+    let objsToRegrow = this.trimCollisionsFromCutFrames(oldFrames);
+
+    for (let obj of objsToRegrow){
+      obj.update(collision.t);
+    }
+
+    this.nextFrame = this.pastFrames.back().copy().constrain(collision.asVector()).projectTo(collisionT);
+    this.ratifyNextFrame();
   }
   enactCollision(otherEntity, collision_t) { // collision of type EntityFrame
-    cutFramesPastT(collision_t); 
-
+    let oldFrames = cutFramesPastT(collision_t); 
+    this.nextFrame = this.pastFrames.back().copy().projectTo(collision_t);
     this.pushNextFrame(); // might need changing bc nextFrame got repurposed from being currentFrame
     
 
@@ -238,27 +313,73 @@ export class Entity {
 
     otherEntity.affectPath(otherEntity_new_path); // this will handle the repercussions of an entity being knocked off-course. Note that the global temporal_front variable, is temporarily wrong about which entities are up-to-date. This fixes that asap.
   }
-  getModel(t) {
-    const frameIndx = tToFrameIndex(t);
-    const startFrame = this.frames.at(frameIndx);
-    const endFrame = 
-    this.updateCurrentFrame(t);
-    return new TimeParallelepiped(x, y, w, l, t1, t2, vector); // build from current frame. look for a way to cache this
+  getModel(endTime, startFrame = this.pastFrames.back()) {
+    return new TimeParallelepiped(startFrame.x, startFrame.y, this.width, this.height, startFrame.t, endTime, [startFrame.dx, startFrame.dy]); // build from current frame. look for a way to cache this
   }
   pushNextFrame(){
-    this.frames.pushBack(this.nextFrame);
+    this.pastFrames.pushBack(this.nextFrame);
     this.nextFrame = null;
   }
-  update(t = CURRENT_T) {
-    if (this.nextFrame == null) {
-      this.nextFrame = this.frames.back().clone();
-      this.nextFrame.projectTo(t);
+  proposeMove(t = CURRENT_T){
+    this.nextFrame = this.pastFrames.back().clone();
+    this.nextFrame.projectTo(t);
+  }
+  checkForCollisions(){ // tests this.nextFrame for colissions with entities in the relevant buckets in the temporal_front. Returns collision with lowest t
+    let frstClsn = null;
+    for (let i = 1; i < temporal_front.length; i++){
+      if (i!=1 && i === this.entity_bucket_index) continue; // dont bother with collisions from entities on the same team (unless its in slot 1)
+      for (let entity of temporal_front[i]){
+        if (entity === this) continue; // don't interact with yourself
+        let clsn = this.testCollisionWith(entity);
+        if (clsn != null && (frstClsn == null || clsn[0].t < frstClsn[0].t)) frstClsn = clsn;
+      }
     }
-    this.pushNextFrame();
+    return frstClsn;
+  }
+  testCollisionWith(entity, t){ // returns the first collision
+    /* POSSIBLE TODO: test to make sure that entities overlap in time (this will be done by the model stuff too, so its not necessary) remember we could be testing a branch cut off from a previously developing collision */
+
+    let firstIntersection;
+    let intersection = null;
+    let framesToTest = cutFramesPastT(this.pastFrames.back().t);
+    framesToTest.pushFront(this.pastFrames.popBack());
+    this.pastFrames.join(framesToTest);
+
+    this.model = this.getModel(t);
+
+    let lastFrame = null;
+    framesToTest.forEach((value) => {
+      if (lastFrame != null) {
+        intersection = this.model.getIntersection(entity.getModel(lastFrame, value.t));
+        if (intersection == null) return [new Collision(intersection, entity), new Collision(intersection, this, true)];
+      }
+      lastFrame = value;
+    });
+    if (lastFrame != null) { // there is a danger of assuming that this frame extends into the present, it wont if the rest of the obejct got cut off
+      intersection = this.model.getIntersection(entity.getModel(lastFrame, value.t));
+      if (intersection == null) return [new Collision(intersection, entity), new Collision(intersection, this, true)];
+    }
+
+    return null;
+  }
+  update(t = CURRENT_T) {
+      if (t <= this.pastFrames.back().t) return;
+
+      /** PROPOSE **/
+      // sets nextFrame to the proposed move for the entity
+      this.proposeMove(t);
+
+      /** RATIFY **/
+      this.ratifyNextFrame();
+
+      /** UPDATE **/
+      // sets the current frame to nextFrame
+      this.pushNextFrame(); 
+      
   } // eventually reroute to updateCurrentFrame, this is a lazy updateCurrentFrame for when i'm testing without collisions
   updateCurrentFrame(t = CURRENT_T) {
-    if (t !== this.frames.back().t) return; // skip calculations if current frame already matches the current time
-    const diffToLastFrame = t - this.frames.back().t;
+    if (t !== this.pastFrames.back().t) return; // skip calculations if current frame already matches the current time
+    const diffToLastFrame = t - this.pastFrames.back().t;
 
     const pastFramesIndx = tToFrameIndex(t);
     const diffToSavedFrame = t - pastFramesIndx * TIME_BETWEEN_FRAMES;
@@ -266,15 +387,15 @@ export class Entity {
     let referenceFrame;
     if (diffToLastFrame >= 0 && diffToLastFrame <= diffToSavedFrame) {
       // develop current frame from most recent frame
-      referenceFrame = this.frames.back().clone(); // may or may not need to copy
+      referenceFrame = this.pastFrames.back().clone(); // may or may not need to copy
     } else {
       // develop current frame from most recent frame
-      referenceFrame = this.frames.at(pastFramesIndx);
+      referenceFrame = this.pastFrames.at(pastFramesIndx);
     }
     this.updateCurrentFrameFromFrame(referenceFrame);
   }
   updateCurrentFrameFromFrame(referenceFrame, t = CURRENT_T) {
-    while (this.frames.back().t < t){
+    while (this.pastFrames.back().t < t){
       // default option is making it to the correct time
       let nextFrameT = t;
 
@@ -329,7 +450,7 @@ export class Entity {
   
   }
   handleAction(action, isDownStroke, t = new Date().getTime()){
-    const newFrame = this.frames.back().clone().projectTo(t);
+    const newFrame = this.pastFrames.back().clone().projectTo(t);
 
     switch(action.type){
       case "shoot":
@@ -350,9 +471,9 @@ export class Entity {
     }
   }
   updateHTMLElement(DEBUG = false){
-    let currentFrame = this.frames.back();
+    let currentFrame = this.pastFrames.back();
     if (DEBUG) console.log(this.type);
-    if (DEBUG) console.log(this.frames);
+    if (DEBUG) console.log(this.pastFrames);
     if (DEBUG) console.log(currentFrame);
     const coords = convertCoords(currentFrame.x - this.width/2, currentFrame.y - this.height/2);
     this.element.style.left = coords[0] + "%";

@@ -1,6 +1,6 @@
 export class EventCard {
     constructor(type, a, b, obj = null, origin = "local", eventT = new Date) {
-      this.type = type; // string of spawn, death, user_input (collision is one of these)
+      this.type = type; // string of spawn, death, user_input, collision
       
       // do we need these or can we use other things here?
       // in case of spawn, a and b are coordinates
