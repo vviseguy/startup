@@ -1,4 +1,4 @@
-import { updateEntities, jostleEntities ,Entity, EntityFrame} from "./javascripts/Entity.js";
+import { updateEntities, jostleEntities, adjustFrame, Entity, EntityFrame} from "./javascripts/Entity.js";
 import { EventCard } from "./javascripts/EventCard.js";
 import { connectGame } from "./javascripts/server_connection.js";
 import { LinkedList } from "./javascripts/dataStructures/LinkedList.js";
@@ -13,7 +13,7 @@ export let CURRENT_T;
 const MS_BETWEEN_FRAMES = 10;
 
 
-export const GAME_ENV = document.getElementById("gameEnv");
+export const GAME_ENV = document.getElementById("gameFrame");
 const GAME_BOARD_FILE = "./game_board.txt";
 
 export const BOARD_TILE_WIDTH = 70;
@@ -54,10 +54,10 @@ function generateGameBoard(game_board_text){
     let nextBlock;
     switch(c){
       case '#':
-        nextBlock = new Entity("block", 0, nextFrame); 
+        nextBlock = new Entity("block", -1, nextFrame); 
         break;
       case '-':
-        nextBlock = new Entity("block", -1, nextFrame); 
+        nextBlock = new Entity("block", -2, nextFrame); 
         nextBlock.changeColorUsingPreset(2);
         break;
       
@@ -70,13 +70,13 @@ function generateGameBoard(game_board_text){
         PLAYER_ENT.changeColor("#770000");
       case ' ':
       default:
-        nextBlock = new Entity("block", -1, nextFrame); 
+        nextBlock = new Entity("block", -2, nextFrame); 
         break;
     }
     
     x += BOARD_TILE_WIDTH;
   }
-
+  jostleEntities();
 }
 let gameLoop;
 let scheduledGameEnd;
@@ -115,6 +115,7 @@ function endGame(){
 function doFrame(){
   CURRENT_T = new Date().getTime(); // time coord for this frame
   updateEntities(); // move entities to current positions, handle collisions
+  adjustFrame();
 }
 // On collisions:
 // (while the top of the priority queue of relevant solids ends before the next from the priority queue of listed movements, take it out

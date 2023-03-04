@@ -151,18 +151,16 @@ export class LinkedList { // technically a doubly linked-list... but i dont want
   }
   split(funct){ // splits the array at the next of the first node (from the back) where the function returns true
     let node;
-
-    let newLength = 0
-    for (node = this.tail; node != null; node = node.previous) {
-      if (funct(node.value)) break;
-      newLength++;
-    }
-    // go back one
-    node = node.next;
-    
     let newList = new LinkedList();
 
-    if(node == null) return newList;
+    if(this.tail == null || funct(this.tail)) return newList;
+
+    let newLength = 0
+    for (node = this.tail; node.previous != null; node = node.previous) {
+      newLength++;
+      if (funct(node.previous.value)) break;
+    }
+
 
     // set new list
     newList.head = node;
@@ -176,13 +174,14 @@ export class LinkedList { // technically a doubly linked-list... but i dont want
       this.length = 0;
     } else {
       this.tail = node.previous;
-      node.previous.next = null;
+      this.tail.next = null;
+
       this.length -= newLength;
     }
 
     // get rid of conenction between the two lists
     node.previous = null;
-    
+    return newList;
   }
   
 

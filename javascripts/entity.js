@@ -25,7 +25,7 @@ let entityBuckets = Array.from({ length: NUM_ENTITY_BUCKETS }, (_, i) => new Set
 
 let EventDeque = new LinkedList(); // contains event cards. haha get it, its a deque AND a deck --> do we really need a global one?
 
-function convertCoords(x, y, doFrameOffset = true){
+function convertCoords(x, y, doFrameOffset = false){
   let scalar = [0.1, 0.1];
 
   let offset = [0,0];
@@ -37,6 +37,15 @@ function convertCoords(x, y, doFrameOffset = true){
 
   return [x *scalar[0] + offset[0], y*scalar[1] + offset[1]];
 }
+export function adjustFrame(){
+  if (PLAYER_ENT) {
+    let center = convertCoords(...PLAYER_ENT.getCoords(), false);
+    let offset = [50 - center[0], 50 - center[1]];
+
+    GAME_ENV.style.left = offset[0] + "%";
+    GAME_ENV.style.top = offset[1] + "%";
+  }
+}
 
 // I dont think i need this function
 export function jostleEntities(){
@@ -46,7 +55,7 @@ export function jostleEntities(){
     }
   }
 }
-export function updateEntities(DEBUG = false){
+export function updateEntities(DEBUG = true){
 
   temporal_front_time = CURRENT_T;
   temporal_front = Array.from({ length: NUM_ENTITY_BUCKETS }, (_, i) => new Set());
@@ -54,9 +63,11 @@ export function updateEntities(DEBUG = false){
   if (DEBUG) var entityUpdateCount = 0;
   for (let bucketNum = 1; bucketNum < NUM_ENTITY_BUCKETS; bucketNum++){
     for(let entity of entityBuckets[bucketNum]){
-      if (DEBUG) console.log(entity);
+      // if (DEBUG) console.log(entity);
       entity.update();
 
+      temporal_front[bucketNum].add(entity);
+      entity.updateHTMLElement();
       if (DEBUG) entityUpdateCount++;
     }
   }
@@ -65,8 +76,8 @@ export function updateEntities(DEBUG = false){
 }
 
 export class Collision extends EventCard{
-  constructor(vectorPointThing, otherParent, flipped = false){
-    super("collision", vectorPointThing.x * (flipped?-1:1), vectorPointThing.y * (flipped?-1:1), otherParent, "local", vectorPointThing.z);
+  constructor(vector, otherParent, flipped = false){
+    super("collision", vector.x * (flipped?-1:1), vector.y * (flipped?-1:1), otherParent, "local", vector.z);
   }
   asVector(){
     new Point(super.a, super.b, 0);
@@ -156,8 +167,8 @@ export class Entity {
 
     this.type = type;
 
-    this.teamNum = teamNum; // starts at 1 - there is no team 0
-    this.entity_bucket_index = this.teamNum + 1;
+    this.teamNum = teamNum; // starts at 1 - there is no 'team' 0
+    this.entity_bucket_index = this.teamNum + 2;
 
     let scalar = 1
     switch(type){
@@ -282,7 +293,7 @@ export class Entity {
   }
   handleCollisionTree(collision){
     let collisionT = collision.t;
-    let oldFrames = cutFramesPastT(collisionT); 
+    let oldFrames = this.cutFramesPastT(collisionT); 
 
     // add movement up until the collision
     this.nextFrame = this.pastFrames.back().copy().projectTo(collisionT);
@@ -299,7 +310,7 @@ export class Entity {
     this.ratifyNextFrame();
   }
   enactCollision(otherEntity, collision_t) { // collision of type EntityFrame
-    let oldFrames = cutFramesPastT(collision_t); 
+    let oldFrames = this.cutFramesPastT(collision_t); 
     this.nextFrame = this.pastFrames.back().copy().projectTo(collision_t);
     this.pushNextFrame(); // might need changing bc nextFrame got repurposed from being currentFrame
     
@@ -314,7 +325,8 @@ export class Entity {
     otherEntity.affectPath(otherEntity_new_path); // this will handle the repercussions of an entity being knocked off-course. Note that the global temporal_front variable, is temporarily wrong about which entities are up-to-date. This fixes that asap.
   }
   getModel(endTime, startFrame = this.pastFrames.back()) {
-    return new TimeParallelepiped(startFrame.x, startFrame.y, this.width, this.height, startFrame.t, endTime, [startFrame.dx, startFrame.dy]); // build from current frame. look for a way to cache this
+    const vector = new Point(startFrame.dx, startFrame.dy, NaN);
+    return new TimeParallelepiped(startFrame.x, startFrame.y, this.width, this.height, startFrame.t, endTime, vector); // build from current frame. look for a way to cache this
   }
   pushNextFrame(){
     this.pastFrames.pushBack(this.nextFrame);
@@ -341,8 +353,8 @@ export class Entity {
 
     let firstIntersection;
     let intersection = null;
-    let framesToTest = cutFramesPastT(this.pastFrames.back().t);
-    framesToTest.pushFront(this.pastFrames.popBack());
+    let framesToTest = this.cutFramesPastT(this.pastFrames.back().t);
+    if (!this.pastFrames.isEmpty()) framesToTest.pushFront(this.pastFrames.popBack()); // in case the previous frame also overlaps into t
     this.pastFrames.join(framesToTest);
 
     this.model = this.getModel(t);
@@ -351,13 +363,13 @@ export class Entity {
     framesToTest.forEach((value) => {
       if (lastFrame != null) {
         intersection = this.model.getIntersection(entity.getModel(lastFrame, value.t));
-        if (intersection == null) return [new Collision(intersection, entity), new Collision(intersection, this, true)];
+        if (intersection != null) return [new Collision(intersection, entity), new Collision(intersection, this, true)];
       }
       lastFrame = value;
     });
     if (lastFrame != null) { // there is a danger of assuming that this frame extends into the present, it wont if the rest of the obejct got cut off
-      intersection = this.model.getIntersection(entity.getModel(lastFrame, value.t));
-      if (intersection == null) return [new Collision(intersection, entity), new Collision(intersection, this, true)];
+      intersection = this.model.getIntersection(entity.getModel(lastFrame, t));
+      if (intersection != null) return [new Collision(intersection, entity), new Collision(intersection, this, true)];
     }
 
     return null;
