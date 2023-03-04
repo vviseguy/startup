@@ -55,7 +55,7 @@ export function jostleEntities(){
     }
   }
 }
-export function updateEntities(DEBUG = true){
+export function updateEntities(DEBUG = false){
 
   temporal_front_time = CURRENT_T;
   temporal_front = Array.from({ length: NUM_ENTITY_BUCKETS }, (_, i) => new Set());
