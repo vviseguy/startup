@@ -7,6 +7,8 @@
 * That I can spend way too much time on css...
 * `box-sizing: border-box;` is a very useful change to make.
 * Box-shadows have a lot of applications
+* I got to see how async and await functions work better, its starting to make more sense.
+* It was also cool to see how local storage storage works hands on.
 
 # Startup
 
