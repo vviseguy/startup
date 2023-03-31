@@ -1,5 +1,6 @@
+import { CURRENT_T } from "../game.js";
 export class EventCard {
-    constructor(type, a, b, obj = null, origin = "local", eventT = new Date) {
+    constructor(type, a, b, obj = null, origin = "local", eventT = CURRENT_T) {
       this.type = type; // string of spawn, death, user_input, collision
       
       // do we need these or can we use other things here?
@@ -8,7 +9,7 @@ export class EventCard {
       this.a = a;
       this.b = b;
   
-      this.z = eventT;
+      this.t = eventT;
   
       this.obj = obj; // pointer to entity which the card represents
   

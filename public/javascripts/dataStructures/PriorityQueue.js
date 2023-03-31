@@ -4,9 +4,9 @@ export class PriorityQueue {
    *
    *  Heap :        a
    *              /   \
-   *             b     c    2  3  10      11
+   *             b     c      2    3       10       11
    *            /\     /\
-   *           d  e   f  g 45 67  100 101  110 111
+   *           d  e   f  g   4 5  6 7    100 101  110 111
    *          /\
    *         h  i
    */

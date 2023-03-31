@@ -10,7 +10,7 @@ let GAME_START_T; // this variable will be set in game init.
 export let CURRENT_T;
 // value of new Date().getTime() when the game starts.
 
-const MS_BETWEEN_FRAMES = 10;
+const MS_BETWEEN_FRAMES = 50;
 
 
 export const GAME_ENV = document.getElementById("gameFrame");
@@ -23,8 +23,7 @@ export let PLAYER_ENT;
 
 function loadGame(){
   
-  GAME_START_T = new Date().getTime();
-  CURRENT_T = GAME_START_T;
+  GAME_START_T = updateCurrentTime();
   
   generateGameBoard(GAME_BOARD_TEXT);
 
@@ -50,7 +49,7 @@ function generateGameBoard(game_board_text){
   let x = 0;
   let y = 0;
   for (let c of game_board_text){
-    let nextFrame = new EntityFrame(x,y,-1,[0,0],THE_FIRST_SPINJITSU_MASTER);
+    let nextFrame = new EntityFrame(x,y, GAME_START_T,[0,0],THE_FIRST_SPINJITSU_MASTER);
     let nextBlock;
     switch(c){
       case '#':
@@ -66,7 +65,7 @@ function generateGameBoard(game_board_text){
         y += BOARD_TILE_WIDTH;
         continue;
       case 'x':
-        PLAYER_ENT = new Entity("player", 1, new EntityFrame(x,y,-1,[0,0],THE_FIRST_SPINJITSU_MASTER));
+        PLAYER_ENT = new Entity("player", 1, new EntityFrame(x,y, GAME_START_T ,[0,0],THE_FIRST_SPINJITSU_MASTER));
         PLAYER_ENT.changeColor("#770000");
       case ' ':
       default:
@@ -94,13 +93,19 @@ export function beginGame(){
     gameLoop = setInterval(doFrame, MS_BETWEEN_FRAMES);
 
     // shut off the game after 500 ms
-    scheduledGameEnd = setTimeout(endGame, 180000); 
+    scheduledGameEnd = setTimeout(endGame, 60000); 
   } else throw new Error("Could not connect game to server.");
 
   
 
 
 
+}
+
+export function updateCurrentTime(){
+  CURRENT_T = new Date().getTime();
+  // console.log("t: "+CURRENT_T);
+  return CURRENT_T;
 }
 
 window.beginGame = beginGame;
@@ -113,7 +118,7 @@ function endGame(){
 
 
 function doFrame(){
-  CURRENT_T = new Date().getTime(); // time coord for this frame
+  updateCurrentTime(); // time coord for this frame
   updateEntities(); // move entities to current positions, handle collisions
   adjustFrame();
 }

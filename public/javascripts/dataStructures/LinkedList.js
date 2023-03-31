@@ -14,22 +14,25 @@ export class LinkedList { // technically a doubly linked-list... but i dont want
   }
 
   pushBack(obj) {
-    // if (obj == NULL) throw new Error("Linked List: adding NULL object");
+    if (obj == null) throw new Error("Linked List: adding null object");
     if (this.length == 0) {
       this.head = new LinkedListNode(obj);
       this.tail = this.head;
     } else {
-      this.tail.next = new LinkedListNode(obj, this.tail);
+      this.tail.next = new LinkedListNode(obj);
+      this.tail.next.previous = this.tail;
       this.tail = this.tail.next;
     }
     this.length++;
   }
   pushFront(obj) {
+    if (obj == null) throw new Error("Linked List: adding null object");
     if (this.length == 0) {
       this.head = new LinkedListNode(obj);
       this.tail = this.head;
     } else {
-      this.head.previous = new LinkedListNode(obj, undefined, this.head);
+      this.head.previous = new LinkedListNode(obj);
+      this.head.previous.next = this.head;
       this.head = this.head.previous;
     }
     this.length++;
@@ -106,6 +109,12 @@ export class LinkedList { // technically a doubly linked-list... but i dont want
       if (rtrn == null) throw new Error("Linked List: get indx greater than list length");
       rtrn = rtrn.next;
     }
+    if (rtrn == null) {
+      console.log(this);
+      console.log(indx);
+      return null;
+
+    }
     return rtrn.value;
   }
 
@@ -120,6 +129,19 @@ export class LinkedList { // technically a doubly linked-list... but i dont want
     for (let node = this.head; node != null; node = node.next) {
       f(node.value);
     }
+  }
+  [Symbol.iterator]() {
+    let curr = this.head;
+    return {
+      next() {
+        if (curr !== null){
+          const rtrn = curr.value;
+          curr = curr.next;
+          return { value: rtrn, done: false };
+        } 
+        else return { done: true };
+      }
+    };
   }
   toString() {
     if (this.length == 0) return "";
@@ -149,38 +171,38 @@ export class LinkedList { // technically a doubly linked-list... but i dont want
   insertInOrder(obj,funct,start){
     // finds the spot for the objects in the list by binary search and inserts it
   }
-  split(funct){ // splits the array at the next of the first node (from the back) where the function returns true
+  split(funct){ // splits the array before the first node (from the front) where the function returns true
     let node;
     let newList = new LinkedList();
-
-    if(this.tail == null || funct(this.tail)) return newList;
-
-    let newLength = 0
-    for (node = this.tail; node.previous != null; node = node.previous) {
+    if(this.head == null || funct(this.head.value)) return newList;
+    
+    let newLength = 1
+    for (node = this.head; node.next != null; node = node.next) {
+      if (funct(node.next.value)) break;
       newLength++;
-      if (funct(node.previous.value)) break;
     }
 
 
     // set new list
-    newList.head = node;
-    newList.tail = this.tail;
+    newList.head = this.head;
+    newList.tail = node;
     newList.length = newLength;
     
     // fix old list
-    if (node.previous === null) {
+    if (node.next === null) {
       this.head = null;
       this.tail = null;
       this.length = 0;
     } else {
-      this.tail = node.previous;
-      this.tail.next = null;
+      this.head = node.next;
+      this.head.previous = null;
 
       this.length -= newLength;
     }
 
     // get rid of conenction between the two lists
-    node.previous = null;
+    node.next = null;
+
     return newList;
   }
   
