@@ -9,6 +9,7 @@
 * Box-shadows have a lot of applications
 * I got to see how async and await functions work better, its starting to make more sense.
 * It was also cool to see how local storage storage works hands on.
+* I was surprized at how easy it was to make and coontrol a mongdb database - I had troubel with the password part, but resetting it did the trick. I learned that changing systems is about as hard as the amount of times you reference that system and taht abstraction in your code (calling a function or group of functions that handle the database access) can help make that transition easier.
 
 # Startup
 
