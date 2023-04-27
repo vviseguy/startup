@@ -54,8 +54,14 @@ function changePage(newPageId) {
 
 window.onload = async function() {
   changePage("home");
+  await updateDadJoke();
+  // loadGame();
+  
+  // debug auto reloader, reload every 60 seconds
+  // setTimeout(() => { window.location.reload(); }, 30000);
+}
+async function updateDadJoke(){
   let el = document.getElementById("dadJoke");
-  console.log(el);
   el.innerHTML = await fetch("https://icanhazdadjoke.com/",{
     method: "GET",
     headers: {
@@ -67,10 +73,6 @@ window.onload = async function() {
       console.log(json);
       return `"${json.joke}"\n\n<div style="margin: 5px; text-align: right;">-icanhazdadjoke.com</div>`;
     });
-  // loadGame();
-  
-  // debug auto reloader, reload every 60 seconds
-  // setTimeout(() => { window.location.reload(); }, 30000);
 }
 console.log("hi");
 console.log(beginGame);
