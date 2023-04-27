@@ -1,6 +1,6 @@
-import { updateEntities, jostleEntities, adjustFrame, Entity, EntityFrame} from "./javascripts/Entity.js";
+import { updateEntities, jostleEntities, adjustViewport, Entity, EntityFrame, updateOtherPlayers} from "./javascripts/Entity.js";
 import { EventCard } from "./javascripts/EventCard.js";
-import { connectGame } from "./javascripts/server_connection.js";
+import { connectGame, currentGame, pushPullFrames } from "./javascripts/server_connection.js";
 import { LinkedList } from "./javascripts/dataStructures/LinkedList.js";
 import { myColors } from "./javascripts/color_tools.js";
 import { addListeners} from "./input_control.js";
@@ -14,7 +14,6 @@ const MS_BETWEEN_FRAMES = 50;
 
 
 export const GAME_ENV = document.getElementById("gameFrame");
-const GAME_BOARD_FILE = "./game_board.txt";
 
 export const BOARD_TILE_WIDTH = 70;
 const THE_FIRST_SPINJITSU_MASTER = new EventCard("game_creation",3.1415,42);
@@ -23,7 +22,7 @@ export let PLAYER_ENT;
 
 function loadGame(){
   
-  GAME_START_T = updateCurrentTime();
+  GAME_START_T = new Date().getTime();
   
   generateGameBoard(GAME_BOARD_TEXT);
 
@@ -49,7 +48,7 @@ function generateGameBoard(game_board_text){
   let x = 0;
   let y = 0;
   for (let c of game_board_text){
-    let nextFrame = new EntityFrame(x,y, GAME_START_T,[0,0],THE_FIRST_SPINJITSU_MASTER);
+    let nextFrame = new EntityFrame(x,y, -1,[0,0],THE_FIRST_SPINJITSU_MASTER);
     let nextBlock;
     switch(c){
       case '#':
@@ -65,7 +64,7 @@ function generateGameBoard(game_board_text){
         y += BOARD_TILE_WIDTH;
         continue;
       case 'x':
-        PLAYER_ENT = new Entity("player", 1, new EntityFrame(x,y, GAME_START_T ,[0,0],THE_FIRST_SPINJITSU_MASTER));
+        PLAYER_ENT = new Entity("player", 1, new EntityFrame(x,y, -1 ,[0,0],THE_FIRST_SPINJITSU_MASTER));
         PLAYER_ENT.changeColor("#770000");
       case ' ':
       default:
@@ -79,7 +78,7 @@ function generateGameBoard(game_board_text){
 }
 let gameLoop;
 let scheduledGameEnd;
-
+export let doCollisions = false;
 let ALREADY_LOADED = false; // a temporay fix! change pls
 
 export function beginGame(){
@@ -88,7 +87,7 @@ export function beginGame(){
     ALREADY_LOADED = true;
 
   }
-  if (endGame() && connectGame()) {
+  if (endGame()) {
     doFrame();
     gameLoop = setInterval(doFrame, MS_BETWEEN_FRAMES);
 
@@ -103,7 +102,8 @@ export function beginGame(){
 }
 
 export function updateCurrentTime(){
-  CURRENT_T = new Date().getTime();
+  CURRENT_T = (new Date().getTime() - GAME_START_T)/1000;
+  if (CURRENT_T == 0) throw Error("updateCurrentTime() is malfuncioning");
   // console.log("t: "+CURRENT_T);
   return CURRENT_T;
 }
@@ -118,9 +118,18 @@ function endGame(){
 
 
 function doFrame(){
-  updateCurrentTime(); // time coord for this frame
-  updateEntities(); // move entities to current positions, handle collisions
-  adjustFrame();
+  try{
+    updateCurrentTime(); // time coord for this frame
+
+    updateEntities(); // move entities to current positions, handle collisions
+    adjustViewport();
+
+    updateOtherPlayers(pushPullFrames());
+
+  } catch(e){
+    endGame();
+    throw e;
+  }
 }
 // On collisions:
 // (while the top of the priority queue of relevant solids ends before the next from the priority queue of listed movements, take it out

@@ -1,0 +1,19 @@
+{
+  "name": "startup",
+  "version": "1.0.0",
+  "description": "* I don't like doing html without css - even when focusing just on structure. I like to be able to center things, and arrange things using \r `display: grid;`.\r * That I can spend way too much time on css...\r * `box-sizing: border-box;` is a very useful change to make.\r * Box-shadows have a lot of applications\r * I got to see how async and await functions work better, its starting to make more sense.\r * It was also cool to see how local storage storage works hands on.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "bcrypt": "^5.1.0",
+    "cookie-parser": "^1.4.6",
+    "express": "^4.18.2",
+    "mongodb": "^5.3.0",
+    "uuid": "^9.0.0"
+  }
+}

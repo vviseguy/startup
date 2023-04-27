@@ -26,6 +26,7 @@ export let COLLISION_RELEVANT_SOLIDS = new PriorityQueue([], (a, b) => { return 
     if these calculations prove to be too much, perhaps it would be easier to have groups of relevant solids for each section of the board, and deal with duplicates when time paralelpipeds cross into different parts of the board.
     
   **/
+ 
 export class Point { // also may also be thought of as a Vector
   // generally, every method without "get-" modifies and then returns the orignial object.
   /**
@@ -66,7 +67,7 @@ export class Point { // also may also be thought of as a Vector
   }
   cross(vector) {
     const newX = this.y * vector.z - this.z * vector.y;
-    const newY = this.x * vector.z - this.z * vector.x;
+    const newY = this.z * vector.x - this.x * vector.z;
     const newZ = this.x * vector.y - this.y * vector.x;
     this.x = newX;
     this.y = newY;
@@ -95,6 +96,10 @@ export class Point { // also may also be thought of as a Vector
     this.x /= this.getNorm();
     this.y /= this.norm;
     this.z /= this.norm;
+    if (this.x < 0) this.scalarMultiply(-1);
+    else if(this.x == 0 && this.y < 0) this.scalarMultiply(-1);
+    else if(this.x == 0 && this.y == 0 && this.z < 0) this.scalarMultiply(-1);
+
     return this;
   }
   getDeterminant(point2, point3) {
@@ -102,8 +107,8 @@ export class Point { // also may also be thought of as a Vector
     let l2 = point2;
     let l3 = point3;
     return l1.x * l2.y * l3.z
-      + l2.x * l3.z * l1.z
-      + l3.x * l1.z * l2.z
+      + l2.x * l3.y * l1.z
+      + l3.x * l1.y * l2.z
       - l3.x * l2.y * l1.z
       - l2.x * l1.y * l3.z
       - l1.x * l3.y * l2.z;
@@ -121,26 +126,45 @@ export class Point { // also may also be thought of as a Vector
         isNaN(this.z) || this.z == null ){
           console.log(this);
           throw new Error("Point/vector has variable with bad value");
-        }
+    }
   }
   equals(point){
     return this.x == point.x && this.y == point.y && this.z == point.z;
   }
-  isScaledEquals(point){
-    const a = this.x/point.x;
-    if (isNaN(a)){
-      a = point.x / this.x;
-      const b = point.y / this.y;
-      const c = point.z / this.z;
-      return a == b && b == c;
-    }
-    const b = this.y/point.y;
-    const c = this.z/point.z;
-    return a == b && b == c;
+  isDangClose(point){
+    const superSmolNum = 0.00001;
+    return  Math.abs(this.x - point.x) < superSmolNum && 
+            Math.abs(this.y - point.y) < superSmolNum && 
+            Math.abs(this.z - point.z) < superSmolNum;
   }
-
+  isScaledEquals(point){
+    const a = this.clone().normalize();
+    const b = point.clone().normalize().abs();
+    // console.log(a);
+    // console.log(b);
+    return a.equals(b);
+  }
 }
-class Line {
+export class Vector extends Point {
+  constructor(x,y,t){
+    super(x,y,t);
+  }
+}
+export class Intersection extends Point {
+  // crossing is a line
+  constructor(crossing, t){ // crossing represents the line in which the two faces collide, it needs to be dropped to be paralell to the z-plane and set so that the z coord is the collision time
+    try {
+      let oldVectCpy = crossing.vector.clone();
+      let newVect = oldVectCpy.sub(oldVectCpy.getProjOnto(new Point(0,0,1))); // newVect is paralell to the ground
+      super(newVect.x, newVect.y, t);
+    } catch (e) {
+      console.log(crossing);
+      throw e;
+    }
+    
+  }
+}
+export class Line {
   /**
    * @param {Point} p1
    * @param {Point} p2
@@ -178,44 +202,73 @@ class Line {
   //     return null; // there can be no intersection worth recording
   //   }
   // }
-  getIntersection(line, axis) { // important note: this does not check to see if it intersects the face.
+  isPointBetweenBounds(lower, point, higher){
+    if (lower.x <= point.x && higher.x >= point.x &&
+      lower.y <= point.y && higher.y >= point.y &&
+      lower.z <= point.z && higher.z >= point.z) return true;
+    else return false;
+  }
+  getIntersection(line, axis, treatPointsAsBounds = false) { // important note: this does not check to see if it intersects the face.
     //we assume theyre not colinaer
-    if (axis = 'x') this.crosses(line).x;
-    if (axis = 'y') this.crosses(line).y;
-    if (axis = 'z') this.crosses(line).z;
+    let rtrn = this.crosses(line);
+    
+    if (rtrn == false) return false;
+    // console.log(".");
+    if (!treatPointsAsBounds || 
+      this.isPointBetweenBounds(line.point1, rtrn, line.point2) ||
+      this.isPointBetweenBounds(line.point2, rtrn, line.point1)) {
+        if (axis == 'x') return rtrn.x;
+        if (axis == 'y') return rtrn.y;
+        if (axis == 'z') return rtrn.z;
+      }
+    return false;
   }
   isColinear(line){
     const c = line.vector.x / this.vector.x;
     return (this.vector.y * c == line.vector.y && this.vector.z * c == line.vector.z);
   }
   crosses(line){
-    if (this.isColinear(line)) return line.point1; // colinear lines
+    // if (this.isColinear(line)) return line.point1; // colinear lines
 
-    const [a, d] = [this.point1.x - line.point1.x, this.point2.y - line.point2.y];
-    const [b, e] = [-this.vector.x, -this.vector.y];
-    const [c, f] = [ line.vector.x,  line.vector.y];
+    // solving p1 + c1 v1 = p = p2 + c2 v2
+    //   as [v1 v2][c] = [p2 - p2]
+    let v = [
+      [this.vector.x, line.vector.x],
+      [this.vector.y, line.vector.y],
+      [this.vector.z, line.vector.z]
+    ];
+    const temp = this.point2.clone().sub(line.point1);
+    // console.log(temp);
+    let p = [temp.x, temp.y, temp.z];
+    let c = solveLinEqu(v,p);
+    if (c == false) return line.point1; // colinear lines
+    let collisionPoint = this.vector.clone().scalarMultiply(c[0]).add(this.point1);
+    return collisionPoint;
+    // const [a, d] = [this.point1.x - line.point1.x, this.point2.y - line.point2.y];
+    // const [b, e] = [-this.vector.x, -this.vector.y];
+    // const [c, f] = [ line.vector.x,  line.vector.y];
 
-    const s = c*e - f*b
-    if (s === 0) { // parallel lines in the x and y dimensions
-      const [a, d] = [this.point1.x - line.point1.x, this.point2.z - line.point2.z];
-      const [b, e] = [-this.vector.x, -this.vector.z];
-      const [c, f] = [ line.vector.x,  line.vector.z];
+    // const s = c*e - f*b
+    // if (s === 0) { // parallel lines in the x and y dimensions
+    //   const [a, d] = [this.point1.x - line.point1.x, this.point2.z - line.point2.z];
+    //   const [b, e] = [-this.vector.x, -this.vector.z];
+    //   const [c, f] = [ line.vector.x,  line.vector.z];
 
-      const s = c*e - f*b
-      if (s === 0) return false; // truely parallel lines
+    //   const s = c*e - f*b
+    //   if (s === 0) return false; // truely parallel lines
 
-      let c1 = (a*e - d*b) / (s);
-      let c2 = (d*c - a*f) / (s);
+    //   let c1 = (a*e - d*b) / (s);
+    //   let c2 = (d*c - a*f) / (s);
 
-      const collisionPoint = this.vector.clone().scalarMultiply(c1).add(this.point1);
-      if (collisionPoint === line.vector.clone().scalarMultiply(c2).add(line.point1)) return collisionPoint;
-      return false;
-    } // parallel lines
-    let c1 = (a*e - d*b) / (s);
-    let c2 = (d*c - a*f) / (s);
+    //   const collisionPoint = this.vector.clone().scalarMultiply(c1).add(this.point1);
+    //   if (collisionPoint === line.vector.clone().scalarMultiply(c2).add(line.point1)) return collisionPoint;
+    //   return false;
+    // } // parallel lines
+    // let c1 = (a*e - d*b) / (s);
+    // let c2 = (d*c - a*f) / (s);
 
-    const collisionPoint = this.vector.clone().scalarMultiply(c1).add(this.point1);
-    if (collisionPoint === line.vector.clone().scalarMultiply(c2).add(line.point1)) return collisionPoint;
+    // const collisionPoint = this.vector.clone().scalarMultiply(c1).add(this.point1);
+    // if (collisionPoint === line.vector.clone().scalarMultiply(c2).add(line.point1)) return collisionPoint;
     return false;
   }
   intersectsFace(face){
@@ -242,8 +295,8 @@ class Line {
     let l2 = line2.vector;
     let l3 = line3.vector;
     return l1.x * l2.y * l3.z
-      + l2.x * l3.z * l1.z
-      + l3.x * l1.z * l2.z
+      + l2.x * l3.y * l1.z
+      + l3.x * l1.y * l2.z
       - l3.x * l2.y * l1.z
       - l2.x * l1.y * l3.z
       - l1.x * l3.y * l2.z;
@@ -279,7 +332,7 @@ class Line {
     this.vector.doSanityCheck();
   }
 }
-class Face {
+export class Face {
   constructor(p0, p1, p2, p3) {
     /**
      *   p2 --- p3
@@ -337,7 +390,13 @@ class Face {
     return this.lines;
   }
   getPlane() { // meaning return the vector perp to that plane, according to the right hand rule, pointing out of the figure above
-    this.equ = this.equ || this.p1.clone().sub(this.p0).cross(this.p2.clone().sub(this.p0));
+    let l1 = this.p1.clone().sub(this.p0);
+    const l2 = this.p2.clone().sub(this.p0);
+    this.equ = this.equ || l1.cross(l2);
+    if (this.equ.x == 0 && this.equ.y == 0 && this.equ.z == 0) {
+      console.log(this);
+      throw Error("The zero vector is not a valid equation");
+    }
     return this.equ;
   }
   // intersects is for planes
@@ -354,27 +413,61 @@ class Face {
     // }
     const pln1 = this.getPlane();
     const pln2 = face.getPlane();
-    
-    if (pln1 == pln2) return false;
-    const vect = pln1.copy().cross(pln2); // we now have the direction of the plane, now we need a starting point
-
+    // console.log(pln1);
+    // console.log(pln2);
+    if (pln1.isScaledEquals(pln2)) return false;
+    const vect = pln1.clone().cross(pln2); // we now have the direction of the plane, now we need a starting point
+    // console.log(vect);
     const c1 = this.getEquC();
     const c2 = face.getEquC();
+    // console.log(c1);
+    // console.log(c2);
 
     // solve the system of equations
-    let det = pln1.y * pln2.x - pln2.y  * pln1.x;
-    let pnt;
-    if (det == 0){ // then we'll try with something other than the z value being 0 -> the next det shouldnt be zero bc that would mean the lines are colinear
-      det = pln1.z * pln2.x - pln2.z  * pln1.x;
-      const x = (pln1.z * c2 - pln2.z  * c1) / det;
-      const z = (pln2.x * c1 - pln1.x  * c2) / det;
-      pnt = Point(x, 0, z);
-    } else { // with the z value being 0
-      const x = (pln1.y * c2 - pln2.y  * c1) / det;
-      const y = (pln2.x * c1 - pln1.x  * c2) / det;
-      pnt = Point(x, y, 0);
+    const eq1 = [pln1.x, pln1.y, pln1.z];
+    const eq2 = [pln2.x, pln2.y, pln2.z];
+    let ans, pnt;
+    if ((ans = solveLinEqu([eq1, eq2, [1,0,0]],[c1,c2,0])) != false) pnt = new Point(...ans); // try setting the x cord to 0
+    else if ((ans = solveLinEqu([eq1, eq2, [0,1,0]],[c1,c2,0])) != false) pnt = new Point(...ans); // try setting the y cord to 0
+    else if ((ans = solveLinEqu([eq1, eq2, [0,0,1]],[c1,c2,0])) != false) pnt = new Point(...ans); // try setting the z cord to 0
+    // let det = pln1.x * pln2.y - pln1.y  * pln2.x;
+    // let pnt;
+    // if (det == 0){ // then we'll try with something other than the z value being 0 -> the next det shouldnt be zero bc that would mean the lines are colinear
+    //   det = pln1.x * pln2.z - pln1.z  * pln2.x;
+    //   if (det == 0){ // then we'll try with something other than the z value being 0 -> the next det shouldnt be zero bc that would mean the lines are colinear
+    //     det = pln1.y * pln2.z - pln1.z  * pln2.y;
+    //     if (det == 0) return false; //throw Error("vectors are causing problems"); // smth happened...
+    //     const y = (c1 * pln2.z - c2 * pln1.z) / det;
+    //     const z = (pln1.y * c2 - pln2.y * c1) / det;
+    //     pnt = new Point(0, y, z);
+  
+    //   } else {
+    //   const x = (c1 * pln2.z - c2 * pln1.z) / det;
+    //   const z = (pln1.x * c2 - pln2.x * c1) / det;
+    //   pnt = new Point(x, 0, z);
+    //   }
+
+    // } else { // with the z value being 0
+    //   const x = (c1 * pln2.y - c2 * pln1.y) / det;
+    //   const y = (pln1.x * c2 - pln2.x * c1) / det;
+    //   pnt = new Point(x, y, 0);
+    // }
+    try {
+      pnt.doSanityCheck();
+    } catch(e){
+      console.log(face);
+      console.log(this);
+
+      console.log(pln1);
+      console.log(pln2);
+      
+      console.log(c1);
+      console.log(c2);
+      throw e;
     }
-    return Line(pnt, vect.add(pnt));
+    const rtrn = new Line(pnt, vect.add(pnt));
+    rtrn.doSanityCheck();
+    return rtrn;
   }
   // crosses(line){
   //   // are the points on different sides of the plane? OR do they both lie in the plane?
@@ -542,7 +635,7 @@ export class TimeParallelepiped extends TimeSolid {
    */
   constructor(x, y, w, l, t1, t2, vector) {
     // x and y coordinates represent the center of the object
-    super("parallelepiped", x, y, w / 2, l / 2, t1, t2, vector = new Point(0,0, t2 - t1));
+    super("parallelepiped", x, y, w / 2, l / 2, t1, t2, vector);
 
     /**  point indicies (c marks the x,y,t1 center)
      *    6-----7                           6-----7
@@ -555,12 +648,12 @@ export class TimeParallelepiped extends TimeSolid {
     
     vector.doSanityCheck();
     if (vector.z === 0) {
-      // console.log("ERROR: parallelpiped with time width zero");
-      vector.z = 1;
+      throw Error("Probably shouldn't have timesolid with no duration");
     }
     this.dx = vector.x / vector.z;
     this.dy = vector.y / vector.z;
     this.dt = t2 - t1;
+    if (this.dt < 0) throw Error("Timesolid with negative duration!");
 
     this.points = [
       new Point(this.x - this.r1, this.y - this.r1, t1),
@@ -592,39 +685,52 @@ export class TimeParallelepiped extends TimeSolid {
     return this.faces;
   }
   utility_getMiddle2of4(arr){
-    const mn = arr.min();
-    let hasRemovedMin = false;
-    const mx = arr.max();
-    let hasRemovedMax = false;
-    return arr.filter((e) => {
-      if (!hasRemovedMin && e === mn){
-        hasRemovedMin = True;
-        return false;
-      } else if (!hasRemovedMax && e === mx){
-        hasRemovedMax = True;
-        return false;
-      }
-      return true;
-    });
+    let count = 0;
+    while (arr.length > 2) {
+      const mn = Math.min(arr);
+      arr.splice(arr.indexOf(mn),1); // remove 1 min
+
+      const mx = Math.max(arr);
+      arr.splice(arr.indexOf(mx),1); // remove 1 max
+
+      if (count++ > 50) throw Error("infinite loop!");
+    }
+    return arr;
   }
   utility_getMinOfOverlapPlanesAndLine(fc1, fc2, line, axis){
-    let lineSegTs1 = fc1.asLines().map((l) => {line.getIntersection(l, axis)});
-    lineSegTs1 = utility_getMiddle2of4(lineSegTs1);
-    let lineSegTs2 = fc2.asLines().map((l) => {line.getIntersection(l, axis)});
-    lineSegTs2 = utility_getMiddle2of4(lineSegTs2);
+    // console.log("tracking intersection");
+    let lineSegTs1 = fc1.asLines().map((l) => line.getIntersection(l, axis, true));
+    let lineSegTs2 = fc2.asLines().map((l) => line.getIntersection(l, axis, true));
+    
+    lineSegTs1 = lineSegTs1.filter((l) => l !== false);
+    lineSegTs2 = lineSegTs2.filter((l) => l !== false);
 
-    arr = lineSegTs1.concat(lineSegTs2);
-    if (arr.min() === arr.max()) return arr[0]; // whole array values are the same
-    arrOfSortedIndicies = Array.from(Array(arr.length).keys()).sort((a,b) => arr[a]-arr[b])
-    arr2.map((a) => a < 2); 
+    if (lineSegTs1.length < 2 || lineSegTs2.length < 2) return false;
+    if (lineSegTs1.length == 4){
+      lineSegTs1 = this.utility_getMiddle2of4(lineSegTs1);
+    }
+    if (lineSegTs2.length == 4){
+      lineSegTs2 = this.utility_getMiddle2of4(lineSegTs2);
+    }
+    
+    let arr = lineSegTs1.concat(lineSegTs2);
+
+    if (Math.min(arr) === Math.max(arr)) return arr[0]; // whole array values are the same
+    let arrOfSortedIndicies = Array.from(Array(arr.length).keys()).sort((a,b) => arr[a]-arr[b])
+    let arr2 = arrOfSortedIndicies.map((a) => a < 2); 
     // this array is now the order of elements from the original array, but as a bool that represesnts if theyre from the first lineSetTs1;
     // [3,8,100,2] => [F,T,T,F]
     // [4,5,6,2] => [F,T,T,F]
 
     if ( arr2[0] ==  arr2[1]) return false; // first two bounds are from first shape or seconds shape (ie they dont overlap)
-    else return arr[arrOfSortedIndicies[1]]; // return the second to least value
+    else {
+      return arr[arrOfSortedIndicies[1]]; // return the second to least value
+    }
   }
   getIntersection(timeSolid) {
+    if (this.t1 == this.t2 || timeSolid.t1 == timeSolid.t2) throw Error("Cannot model interaction of timesolid with no duration!");
+    if (this.t1 > this.t2 || timeSolid.t1 > timeSolid.t2) throw Error("Timesolid with negative duration!");
+    
     this.doSanityCheck();
     timeSolid.doSanityCheck();
 
@@ -635,60 +741,118 @@ export class TimeParallelepiped extends TimeSolid {
     //     return null;
     //   }
 
-    console.log("checking intersection with math");
+    // console.log("checking intersection with math");
     switch (timeSolid.type){ // because they can only touch once, locating one intersection is good enough to return
       case "parallelepiped":
         // ADD BACK IN !!!!
         // // are they even in the same neighborhood??
         const distFromBase = this.center.clone().sub(timeSolid.center);
+        let save1 = distFromBase.clone();
         // console.log(distFromBase);
         const widthOffset = new Point(this.r1 + timeSolid.r1, this.r2 + timeSolid.r2, 0);
+        let save2 = widthOffset.clone();
         // console.log(widthOffset);
         // console.log(widthOffset);
         widthOffset.doSanityCheck();
         distFromBase.abs().sub(widthOffset);
+        let save3 = distFromBase.clone();
+        // console.log("checking intersection!");
         
+        
+        // console.log("vect");
+        // console.log(this.vector);
+        // console.log(timeSolid.vector);
         // at this point if distFromBase < 0 then they are intersecting! optimize
-        if (distFromBase.x <= 0 && distFromBase.y <= 0) console.log("trivial intersection!");
-
-        const maxTravel = this.vector.clone().sub(timeSolid.vector.clone()).abs();
-        distFromBase.sub(maxTravel);
+        if (distFromBase.x <= 0 && distFromBase.y <= 0) {
+          // console.log("trivial intersection!");
+          return true;
+        }
+        // console.log(timeSolid);
         
-        if (distFromBase.x <= 0 && distFromBase.y <= 0) console.log("trivially not not intersecting!");
+        let maxTravel = this.vector.clone().scalarMultiply(this.vector.z).sub(timeSolid.vector.clone().scalarMultiply(timeSolid.vector.z)).abs();
+        distFromBase.sub(maxTravel);
+        if (distFromBase.x <= 0 && distFromBase.y <= 0);// console.log("trivially not not intersecting!");
         else return null;
+        
+        console.log(save1);
+        console.log(save2);
+        console.log(save3);
+        console.log(maxTravel);
+        console.log(distFromBase);
 
+        console.log("");
+        console.log(this.vector);
+        console.log(timeSolid.vector);
         // // are the centers of the lines (extending infinetly in both directions, sufficiently close?)
           // const trueOffset = this.line.getOffsetToLine(timeSolid.line).sub(widthOffset);
           // if (trueOffset.x > 0 || trueOffset.y > 0) return null;
 
-        // do they overlap?
+        // let minT = null;
+        // let vect = this.vector.clone().sub(timeSolid.vector);
+        // for (const thisFace of this.getFaces().slice(2)){
+        //   for (const thatFace of timeSolid.getFaces().slice(2)){
+        //     if (thatFace.p0.x = thatFace.p1.x) { // wall is horizonally aligned
+
+        //     }
+        //     let suggestionCollision = 
+        //   }
+        // }
+
+          // do they overlap?
         let minT = null; // wintergreen     lol... its minty.. get it? minT?
+        let minCrossing;
         for (const thisFace of this.getFaces().slice(2)){ // only iterate through sides of faces
           thisFace.doSanityCheck();
           for (const thatFace of timeSolid.getFaces().slice(2)){ // only iterate through sides of faces
             thatFace.doSanityCheck();
             const crossing = thisFace.intersects(thatFace);
+            // console.log(crossing);
             if (crossing == false) continue; // if the planes are parallel
             let suggestionT;
             if (crossing.vector.z == 0){ // if the line is paralell to the ground
+              // console.log(this.t2);
               suggestionT = crossing.point1.z;
               if (crossing.vector.x == 0){ // if line is paralell to the x-axis too.. good gravy! so do it w/ repect to the y
-                const r = utility_getMinOfOverlapPlanesAndLine(thisFace, thatFace, crossing, 'y');
+                // console.log("Y");
+                const r = this.utility_getMinOfOverlapPlanesAndLine(thisFace, thatFace, crossing, 'y');
+                // console.log(r);
                 if (r == false) continue;
               } else{
-                const r = utility_getMinOfOverlapPlanesAndLine(thisFace, thatFace, crossing, 'x');
+                // console.log("X");
+                const r = this.utility_getMinOfOverlapPlanesAndLine(thisFace, thatFace, crossing, 'x');
+                // console.log(r);
                 if (r == false) continue;
               }
               // !!!! catch special case where all Ts are the same and T doesnt lie on the plane intersection :(
             } else {
-              suggestionT = utility_getMinOfOverlapPlanesAndLine(thisFace, thatFace, crossing, 'z');
+              suggestionT = this.utility_getMinOfOverlapPlanesAndLine(thisFace, thatFace, crossing, 'z');
               if (suggestionT == false) continue;
+              console.log(crossing);
+              throw Error("something broke");
+              continue; // a shortcut for now,, because all objects are oriente in line iwth the horiz. and vert. axis
+              // console.log("Z");
+              
+              
             }
-            if (minT == null || suggestionT < minT) minT = suggestionT;
+            // console.log(thisFace);
+            // console.log(thatFace);
+            // console.log(suggestionT);
+            if (suggestionT > timeSolid.t2 || suggestionT > this.t2) {
+              console.log("Concerning Event: Collision returned is after the timeSolid!");
+              continue;
+            }
+            if (suggestionT < timeSolid.t1 || suggestionT < this.t1) {
+              console.log("Concerning Event: Collision returned is before the timeSolid!");
+              continue;
+            }
+            if (minT == null || suggestionT < minT) {
+              minT = suggestionT;
+              minCrossing = crossing;
+            }
           }
         }
-
-        return minT;
+        if (minT == null) return null;
+        return new Intersection(minCrossing, minT);
       case "cylinder":
         return null;
     }
@@ -714,4 +878,77 @@ export class TimeCylinder extends TimeSolid { // technically it would be a TimeO
 
 function rejoice() {
   console.log("YES!! :)");
+}
+
+function solveLinEqu(equations, cArr){
+  let matrix = [];
+  let rtrn = [];
+  if (equations.length != cArr.length) throw Error("solveLinEq: invalid arguement length");
+  if (equations.length < equations[0].length) throw Error("solveLinEq: not enough equations for definite solution");
+  for (let i = 0; i < equations.length; i++) matrix.push([...equations[i],cArr[i]]);
+  for (let i = 0; i < matrix.length; i++)
+    for (let j = 0; j < matrix[0].length; j++) 
+      if (isNaN(matrix[i][j])) 
+        throw Error("solveLinEq: non-numeric inputs!");
+  for (let i = 0; i < matrix.length; i++){
+    // for (let p = 0; p < matrix.length; p++)
+    //   console.log(matrix[p]);
+    // console.log("solving...");
+
+    // get leading 1
+    for (let j = i; j < matrix.length; j++){
+      if (matrix[j][i] == 0) continue;
+      if (i != j){ // swap the rows
+        let temp = matrix[i];
+        matrix[i] = matrix[j];
+        matrix[j] = temp;
+      }
+      // make the now non constant leading term of the ith row 1
+      const c = matrix[i][i];
+      // console.log(c);
+      matrix[i] = matrix[i].map(x => x/c); 
+    }
+    // make zeros underneath
+    for (let j = i+1; j < matrix.length; j++){
+      const c = matrix[j][i];
+      if (c == 0) continue;
+      for (let k = 0; k < matrix[0].length; k++){ // could reduce by only doing the c term
+        matrix[j][k] = matrix[j][k]/c - matrix[i][k];
+      }
+    }
+  }
+  // for (let p = 0; p < matrix.length; p++)
+  //     console.log(matrix[p]);
+  for (let i = 0; i < matrix.length; i++)
+      rtrn.push(matrix[i][matrix[0].length-1]);
+
+  let isBadSolution = true;
+  for (let i = 0; i < matrix[0].length-1; i++) if (matrix[matrix.length-1][i] != 0) isBadSolution = false;
+  matrix[0][0].length;
+  if (isBadSolution && matrix[matrix.length-1][matrix.length[0]-1] != 0) return false;
+
+
+  //check answers
+  for (let i = 0; i < equations.length; i++){
+    let sum = 0;
+    for (let j = 0; j < equations[i].length; j++){
+      const c = equations[i][j];
+      for (let k = 0; k < equations[i].length; k++){
+        equations[i][k] -= matrix[j][k] * c;
+      }
+      sum += c * rtrn[j];
+    }
+    
+    if(Math.abs(sum - cArr[i]) > 0.000001) {
+      for (let p = 0; p < equations.length; p++)
+        console.log(equations[p]);
+      for (let p = 0; p < matrix.length; p++)
+        console.log(matrix[p]);
+      console.log(sum + " " + cArr[i]);
+      throw Error("solveLinEqu: answer not exact!");
+
+    }
+  }
+
+  return rtrn;
 }

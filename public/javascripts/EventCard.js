@@ -1,4 +1,4 @@
-import { CURRENT_T } from "../game.js";
+import { CURRENT_T } from "../load_game.js";
 export class EventCard {
     constructor(type, a, b, obj = null, origin = "local", eventT = CURRENT_T) {
       this.type = type; // string of spawn, death, user_input, collision

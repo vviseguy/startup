@@ -9,10 +9,19 @@ export class LinkedList { // technically a doubly linked-list... but i dont want
   length = 0;
   head = null;
   tail = null;
+  iterateForwards = true;
   constructor(arr = []) {
     arr.forEach((obj) => { this.pushBack(obj) });
   }
-
+  setIterateBackwards(){
+    this.iterateForwards = false;
+  }
+  setIterateForwards(){
+    this.iterateForwards = true;
+  }
+  reverse(){
+    this.iterateForwards = !this.iterateForwards;
+  }
   pushBack(obj) {
     if (obj == null) throw new Error("Linked List: adding null object");
     if (this.length == 0) {
@@ -110,8 +119,8 @@ export class LinkedList { // technically a doubly linked-list... but i dont want
       rtrn = rtrn.next;
     }
     if (rtrn == null) {
-      console.log(this);
-      console.log(indx);
+      // console.log(this);
+      // splitole.log(indx);
       return null;
 
     }
@@ -131,17 +140,31 @@ export class LinkedList { // technically a doubly linked-list... but i dont want
     }
   }
   [Symbol.iterator]() {
-    let curr = this.head;
-    return {
-      next() {
-        if (curr !== null){
-          const rtrn = curr.value;
-          curr = curr.next;
-          return { value: rtrn, done: false };
-        } 
-        else return { done: true };
-      }
-    };
+    if (this.iterateForwards){
+      let curr = this.head;
+      return {
+        next() {
+          if (curr !== null){
+            const rtrn = curr.value;
+            curr = curr.next;
+            return { value: rtrn, done: false };
+          } 
+          else return { done: true };
+        }
+      }; 
+    }else {
+      let curr = this.tail;
+      return {
+        next() {
+          if (curr != null){
+            const rtrn = curr.value;
+            curr = curr.previous;
+            return { value: rtrn, done: false };
+          } 
+          else return { done: true };
+        }
+      };
+    }
   }
   toString() {
     if (this.length == 0) return "";
@@ -154,23 +177,22 @@ export class LinkedList { // technically a doubly linked-list... but i dont want
   indexOf(val){
     ///
   }
-  iterateBackwards(condition, funct){
-    let node;
-    for (let node = this.tail; node != null && condition(node.value); node = node.previous) {
-      funct(node.value);
-    }
-    if (node != null) return node.value;
-  }
-  iterateForwards(condition, funct){
-    let node;
-    for (node = this.head; node != null && condition(node.value); node = node.next) {
-      funct(node.value);
-    }
-    if (node != null) return node.value;
-  }
-  insertInOrder(obj,funct,start){
-    // finds the spot for the objects in the list by binary search and inserts it
-  }
+  // obsolete with the reverse and iterator thingy
+  // iterateBackwards(condition, funct){
+  //   let node;
+  //   for (let node = this.tail; node != null && condition(node.value); node = node.previous) {
+  //     funct(node.value);
+  //   }
+  //   if (node != null) return node.value;
+  // }
+  // iterateForwards(condition, funct){
+  //   let node;
+  //   for (node = this.head; node != null && condition(node.value); node = node.next) {
+  //     funct(node.value);
+  //   }
+  //   if (node != null) return node.value;
+  // }
+
   split(funct){ // splits the array before the first node (from the front) where the function returns true
     let node;
     let newList = new LinkedList();
@@ -217,6 +239,19 @@ export class LinkedList { // technically a doubly linked-list... but i dont want
       this.tail.next = otherList.head;
       otherList.head.previous = this.tail;
       this.tail = otherList.tail;
+      this.length += otherList.length;
+    }
+  }
+  joinFront(otherList){ // pushed new list to front of linked list
+    if (this.length == 0) {
+      this.head   = otherList.head;
+      this.tail   = otherList.tail;
+      this.length = otherList.length;
+    }
+    else if (otherList.length > 0){
+      otherList.tail.next = this.head;
+      this.head.previous= otherList.tail;
+      this.head = otherList.head;
       this.length += otherList.length;
     }
   }
