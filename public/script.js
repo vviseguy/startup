@@ -1,10 +1,10 @@
 
+
 const HOME_PAGE_ID = "home";
 const HEADER_ID = "header";
 const ERROR_PAGE_ID = "error";
 const GAME_START_ID = "play-game";
 const LAST_PAGE_SHORTCUT = "%last-page";
-
 
 let lastPageStack = [];
 
@@ -52,10 +52,34 @@ function changePage(newPageId) {
 }
 
 
-window.onload = function() {
+window.onload = async function() {
   changePage("home");
+  let el = document.getElementById("dadJoke");
+  console.log(el);
+  el.innerHTML = await fetch("https://icanhazdadjoke.com/",{
+    method: "GET",
+    headers: {
+      Accept: "application/json",
+    }
+  })//.then((res) => res.json())
+    .then((res) => res.json())
+    .then((json) => {
+      console.log(json);
+      return `"${json.joke}"\n\n<div style="margin: 5px; text-align: right;">-icanhazdadjoke.com</div>`;
+    });
   // loadGame();
   
   // debug auto reloader, reload every 60 seconds
   // setTimeout(() => { window.location.reload(); }, 30000);
+}
+console.log("hi");
+console.log(beginGame);
+beginGame();
+function joinGame(gameId) {
+  connectGame(gameId);
+}
+
+function createNewGame() {
+  beginGame();
+  createGame();
 }

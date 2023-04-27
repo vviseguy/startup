@@ -24,19 +24,21 @@
       <div class="menuOption" onclick="changePage('tutorial')">Tutorial</div>
       <div class="menuOption" onclick="changePage('sign-in')">Sign-in</div>
       <div class="menuOption hidden" onclick="changePage('account-dashboard')">Account</div>
+      <div style="width:35%; margin: 5% auto; text-align: center;" id="dadJoke">Your favorite dad jokes here.</div>
     </div>
   </div>
 
   <div class="page hidden" id="join-game">
     Enter a game id
-    <input type="text" id="game-id" name="game-id" placeholder="Game ID">
-    <button class="menuOption" onclick="changePage('play-game')" style="display: inline-block;">Join</button>
+    <input type="text" id="gameJoinCode" name="game-id" placeholder="Game ID">
+    <button class="menuOption" id="joinGame" style="display: inline-block;">Join</button>
     <button class="menuOption" onclick="changePage('create-game')">Create a game</button>
+    <button class="menuOption" onclick="changePage('play-game')">go to play game</button>
   </div>
 
   <div class="page hidden" id="create-game">
     create a game
-    <div class = "menuOption" onclick="changePage('play-game')">start game</div>
+    <div class = "menuOption" id="createGame">start game</div>
     <p onclick="changePage('home')">Return to home screen</p>
   </div>
 
@@ -73,7 +75,7 @@
   </div>
 
   <div class="page hidden" id="sign-in">
-    This is the sign in page <br>
+    This is the sign in page. Please don't use your secure passwords, this site isnt meant to be super secure and cant handle the liability of you trusting us with your information <br>
     Username
     <input type="text" id="username" name="username" placeholder="username">
     <br>
@@ -100,9 +102,10 @@
     <p onclick="changePage('home')">Return to home screen</p>
   </div>
 
-  
   <script src="script.js"></script>
-  <script type="module" src="game.js"></script>
+  <script type="module" src="load_game.js"></script>
+  <script type="module" src="javascripts/testing.js"></script>
+
 
 </body>
 
