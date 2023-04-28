@@ -3,7 +3,14 @@
 .hidden {
   display: none !important;
 }
-*:not(.selectable){
+
+html,
+body {
+  height: 100%;
+  width: 100%;
+  margin: 0px;
+  font-family: Sans-serif;
+
   -webkit-touch-callout: none; /* iOS Safari */
   -webkit-user-select: none; /* Safari */
   -khtml-user-select: none; /* Konqueror HTML */
@@ -12,14 +19,14 @@
   user-select: none; /* Non-prefixed version, currently
                                   supported by Chrome, Edge, Opera and Firefox */
 }
-html,
-body {
-  height: 100%;
-  width: 100%;
-  margin: 0px;
-  font-family: Sans-serif;
-
-  
+.selectable{
+  -webkit-touch-callout: text; /* iOS Safari */
+  -webkit-user-select: text; /* Safari */
+  -khtml-user-select: text; /* Konqueror HTML */
+  -moz-user-select: text; /* Old versions of Firefox */
+  -ms-user-select: text; /* Internet Explorer/Edge */
+  user-select: text; /* Non-prefixed version, currently
+                                  supported by Chrome, Edge, Opera and Firefox */
 }
 body {
   display: flex;
