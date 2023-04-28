@@ -13,6 +13,7 @@
     <div onclick="changePage('join-game')">Join Game</div>
     <div onclick="changePage('create-game')">Create Game</div>
     <a style="color:white" href="https://github.com/vviseguy/startup">GitHub</a>
+    <div>Playing as: <div id="playerId">Guest</div></div>
   </div>
   
   <div class="page hidden" id="home">
@@ -30,7 +31,7 @@
 
   <div class="page hidden" id="join-game">
     Enter a game id
-    <input type="text" id="gameJoinCode" name="game-id" placeholder="Game ID">
+    <input type="text" id="gameJoinCode" class = "currentGameIdHolder" name="game-id" placeholder="Game ID">
     <button class="menuOption" id="joinGame" style="display: inline-block;">Join</button>
     <button class="menuOption" onclick="changePage('create-game')">Create a game</button>
     <button class="menuOption" onclick="changePage('play-game')">go to play game</button>
@@ -44,6 +45,7 @@
 
   <div class="page hidden" id="play-game">
     <div>
+      <div>Current game id:<div class = "currentGameIdHolder"></div></div>
       <div id="gameEnv">
         <div id="gameFrame"></div>
       </div>
