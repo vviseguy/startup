@@ -3,6 +3,8 @@ const config = require('./database.js');
 const confi2 = require('./game_handlers.js');
 
 // node.js express
+
+console.log("loading..");
 const express = require('express');
 const app = express();
 
@@ -24,36 +26,42 @@ app.use(`/api`, apiRouter);
 let gameRouter = express.Router();
 apiRouter.use(`/game`, gameRouter);
 
-
 // Get new game events
-app.get("/create",(_req, res) => {
-  let gameId = generateNewGame();// create an associated game id and game with the right details
+gameRouter.post("/create",(req, res) => {
+  let game = confi2.generateNewGame();// create an associated game id and game with the right details
   // send the game info
-  console.log(gameId);
-  // res.send(gameId);
-  res.send({body:"test"});
+
+  // add player 
+  game.addPlayer(req.body.player);
+  
+  console.log(`Game created (${game.id})`);
+  return res.send({gameId:game.id});
+
+  // res.send({body:"test"});
   // update game info everytime a player joins/leaves/loses connection
 });
 
 gameRouter.get("/info/:gameId", (req, res) => {
-  if (!isActiveGameId(req.params.gameId)) 
+  if (!confi2.isActiveGameId(req.params.gameId)) 
     res.status(400).send({ msg:`GameId '${req.params.gameId} does not match any existing games!`});
   // send relevant game info
-  res.send(getGameById(req.params.gameId).getInfo());
+  res.send(confi2.getGameById(req.params.gameId).getInfo());
 });
 
 gameRouter.post("/join/:gameId", (req, res) => {
-  if (!isActiveGameId(req.params.gameId)) 
+  if (!confi2.isActiveGameId(req.params.gameId)) 
     res.status(400).send({ msg:`GameId '${req.params.gameId} does not match any existing games!`});
   if (!req.body.player) 
     res.status(400).send({ msg:`Missing Player Id`});
     // 0. check that request to join game is valid
   // 1. update game
   // 2. send confimration back?? > probably game info
-  let game = getGameById(req.params.gameId);
+  let game = confi2.getGameById(req.params.gameId);
   game.addPlayer(req.body.player);
-
-  res.status(200).send({msg:`${req.body.player} successfully joined the game`});
+  console.log(game.getTime()+0+0+0+0+0+0+0);
+  
+  console.log(`${req.body.player} successfully joined the game`);
+  res.status(200).send({t:game.getTime(), msg:`${req.body.player} successfully joined the game`});
 });
 
 // gameRouter.post("/begin/:gameId", (req, res) => {
@@ -63,35 +71,38 @@ gameRouter.post("/join/:gameId", (req, res) => {
 //   res.send(scores);
 // });
 
-gameRouter.get("/update/:gameId", (req, res) => {
-  if (!isActiveGameId(req.params.gameId)) 
-    res.status(400).send({ msg:`GameId '${req.params.gameId} does not match any existing games!`});
-  if (!req.body.player) 
-    res.status(400).send({ msg:`Missing Player Id`});
-    // 1. check that the other player's game hash matches
-  let game = getGameById(req.params.gameId);
+// gameRouter.get("/update/:gameId", (req, res) => {
+//   if (!confi2.isActiveGameId(req.params.gameId)) 
+//     res.status(400).send({ msg:`GameId '${req.params.gameId} does not match any existing games!`});
+//   if (!req.body.player) 
+//     res.status(400).send({ msg:`Missing Player Id`});
+//     // 1. check that the other player's game hash matches
+//   let game = confi2.getGameById(req.params.gameId);
 
-  // 2. send all the bits that it is missing ... for now, just the current state
-  res.send(game.getCurrentFrame());
-});
+//   // 2. send all the bits that it is missing ... for now, just the current state
+//   res.send(game.getCurrentFrame());
+// });
 
 // publish input from this machine
 gameRouter.post("/update/:gameId", (req, res) => {
-  console.log(`got request for game ${req.params.gameId}`);
   // NOT YET IMPLEMENTED
   // 1. update game
   // 2. check players game hash
   // 3. send all missing information
+  // console.log(req);
+  if (!confi2.isActiveGameId(req.params.gameId)) {
+    return res.status(400).send({ msg:`GameId '${req.params.gameId}' does not match any existing games!`});
+  }
+  if (!req.body.player) {
+    return res.status(400).send({ msg:`Missing player id.`});
 
-  if (!isActiveGameId(req.params.gameId)) 
-    res.status(400).send({ msg:`GameId '${req.params.gameId} does not match any existing games!`});
-  if (!req.body.player) 
-    res.status(400).send({ msg:`Missing player id.`});
-  if (!req.body.playerFrame) 
-    res.status(400).send({ msg:`Missing player data.`});
+  }
+  if (!req.body.frame) {
+    return res.status(400).send({ msg:`Missing player data.`});
+  }
 
-  let game = getGameById(req.params.gameId);
-  game.updateFrame(req.body.player, req.body.playerFrame);
+  let game = confi2.getGameById(req.params.gameId);
+  game.updateFrame(req.body.player, req.body.frame);
 
   let result = game.getCurrentFrames();
   // console.log(result);

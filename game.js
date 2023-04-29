@@ -1,5 +1,6 @@
 class Game {
     players = new Map();
+    headPlayer;
     constructor(id = generateRandomString(6)){
         this.id = id;
     }
@@ -10,6 +11,7 @@ class Game {
         return this.players.has(player);
     }
     addPlayer(player){
+        if (!this.headPlayer) this.headPlayer = player;
         // this.players.set(player, null);
     }
     removePlayer(player){
@@ -22,7 +24,12 @@ class Game {
         };
     }
     updateFrame(player, frame){
-        if (!this.players.has(player)) throw Error("No matching player.");
+        if (!this.players.has(player)) {
+            console.log("No matching player.");
+            console.log(player);
+            console.log(this.players);
+            // throw Error("No matching player.");
+        }
         this.players.set(player, frame);
     }
     getCurrentFrames(){ // returns the most recent frame of all other players
@@ -30,9 +37,12 @@ class Game {
         delete obj[this.id];
         return JSON.stringify(obj);
     }
+    getTime(){
+        return this.players.get(this.headPlayer).t;
+    }
 }
 
-const GAME_CODE_ALPHABET = "Il1";
+const GAME_CODE_ALPHABET = "0123456789";
 function generateRandomString(length, alphabet = GAME_CODE_ALPHABET){
     let str = "";
     const alphabetLength = alphabet.length;

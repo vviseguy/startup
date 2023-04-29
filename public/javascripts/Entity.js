@@ -78,6 +78,8 @@ export function updateEntities(DEBUG = false){
 
 let otherPlayers = new Set();
 export function updateOtherPlayers(frames){
+  console.log(frames);
+
   for (let otherPlayer of otherPlayers.values()){
     otherPlayer.kill();
   }
@@ -85,7 +87,11 @@ export function updateOtherPlayers(frames){
 
   for (let playerId in frames){
     console.log(`${playerId} updated!`);
-    otherPlayers.add(new Entity('Player', 0, frames[playerId]));
+    let obj = frames[playerId];
+    let frame = new EntityFrame(obj.x, obj.y, obj.t, [obj.dx, obj.dy], obj.eventCard);
+    let ent = new Entity('Player', 0, frame);
+    otherPlayers.add(ent);
+    ent.updateHTMLElement();
   }
 }
 export class Collision extends EventCard{

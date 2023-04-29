@@ -6,7 +6,7 @@ import { myColors } from "./javascripts/color_tools.js";
 import { addListeners} from "./input_control.js";
 import { GAME_BOARD_TEXT } from "./game_board.js";
 
-let GAME_START_T; // this variable will be set in game init.
+let GAME_START_T = NaN; // this variable will be set in game init.
 export let CURRENT_T;
 // value of new Date().getTime() when the game starts.
 
@@ -21,8 +21,8 @@ export let PLAYER_ENT;
 
 
 function loadGame(){
+  // beginGameAtTEquals(0);
   
-  GAME_START_T = new Date().getTime();
   
   generateGameBoard(GAME_BOARD_TEXT);
 
@@ -48,11 +48,11 @@ function generateGameBoard(game_board_text){
   let x = 0;
   let y = 0;
   for (let c of game_board_text){
-    let nextFrame = new EntityFrame(x,y, -1,[0,0],THE_FIRST_SPINJITSU_MASTER);
+    let nextFrame = new EntityFrame(x,y, -2,[0,0],THE_FIRST_SPINJITSU_MASTER);
     let nextBlock;
     switch(c){
       case '#':
-        nextBlock = new Entity("block", -1, nextFrame); 
+        nextBlock = new Entity("block", -2, nextFrame); // changed team from -1
         break;
       case '-':
         nextBlock = new Entity("block", -2, nextFrame); 
@@ -63,12 +63,14 @@ function generateGameBoard(game_board_text){
         x = 0;
         y += BOARD_TILE_WIDTH;
         continue;
-      case 'x':
-        PLAYER_ENT = new Entity("player", 1, new EntityFrame(x,y, -1 ,[0,0],THE_FIRST_SPINJITSU_MASTER));
+      case 'x': // changed team from 1
+        PLAYER_ENT = new Entity("player", -2, new EntityFrame(x,y, -1 ,[0,0],THE_FIRST_SPINJITSU_MASTER));
         PLAYER_ENT.changeColor("#770000");
       case ' ':
+        nextBlock = new Entity("block", -2, nextFrame); // changed team from -1
+        break;
       default:
-        nextBlock = new Entity("block", -2, nextFrame); 
+        nextBlock = new Entity("player", -2, nextFrame); // changed team from -1
         break;
     }
     
@@ -77,6 +79,7 @@ function generateGameBoard(game_board_text){
   jostleEntities();
 }
 let gameLoop;
+let multiplayerLoop;
 let scheduledGameEnd;
 export let doCollisions = false;
 let ALREADY_LOADED = false; // a temporay fix! change pls
@@ -90,9 +93,9 @@ export function beginGame(){
   if (endGame()) {
     doFrame();
     gameLoop = setInterval(doFrame, MS_BETWEEN_FRAMES);
-
+    multiplayerLoop = setInterval(updateOtherPLayers, MS_BETWEEN_FRAMES);
     // shut off the game after 500 ms
-    scheduledGameEnd = setTimeout(endGame, 60000); 
+    scheduledGameEnd = setTimeout(endGame, 600000); 
   } else throw new Error("Could not connect game to server.");
 
   
@@ -108,14 +111,17 @@ export function updateCurrentTime(){
   return CURRENT_T;
 }
 
-window.beginGame = beginGame;
 function endGame(){
   clearTimeout(scheduledGameEnd);
   clearInterval(gameLoop);
+  clearInterval(multiplayerLoop);
   return true;
 }
 
-
+export function startTimeAtTEquals(time){
+  console.log(`SETTING TIME ${time}`);
+  GAME_START_T = new Date().getTime() - time*1000;
+}
 
 function doFrame(){
   try{
@@ -124,12 +130,15 @@ function doFrame(){
     updateEntities(); // move entities to current positions, handle collisions
     adjustViewport();
 
-    updateOtherPlayers(pushPullFrames());
-
   } catch(e){
     endGame();
     throw e;
   }
+}
+async function updateOtherPLayers(){
+  const frames = await pushPullFrames();
+  console.log(frames);
+  updateOtherPlayers(frames);
 }
 // On collisions:
 // (while the top of the priority queue of relevant solids ends before the next from the priority queue of listed movements, take it out

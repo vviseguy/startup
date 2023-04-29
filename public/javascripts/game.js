@@ -32,7 +32,7 @@ export class Game {
     }
 }
 
-const GAME_CODE_ALPHABET = "Il1";
+const GAME_CODE_ALPHABET = "\\|/";
 function generateRandomString(length, alphabet = GAME_CODE_ALPHABET){
     let str = "";
     const alphabetLength = alphabet.length;

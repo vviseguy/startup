@@ -1,17 +1,17 @@
 const config = require("./game.js");
 
-const MAX_ACTIVE_GAMES = 10;
+const MAX_ACTIVE_GAMES = 100;
 let activeGames = new Map();
 
 
 function generateNewGame(){
     if (activeGames.size >= MAX_ACTIVE_GAMES) throw Error("Too many games. Cannot add game.");
 
-    let game = new Game();
+    let game = new config.Game();
     while (activeGames.has(game.id)) game.regenerateId(); // get unique id;
     activeGames.set(game.id, game);
 
-    return game.id;
+    return game;
 }
 function getGameById(gameId){
     return activeGames.get(gameId);

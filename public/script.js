@@ -37,8 +37,8 @@ function changePage(newPageId) {
   else 
     document.getElementById(HEADER_ID).classList.remove("hidden");
 
-  if (targetPageId == GAME_START_ID)
-    beginGame();
+  // if (targetPageId == GAME_START_ID)
+  //   beginGame(); // add back window.beginGame = beginGame; somewhere in that file
 
   // if page DNE, go to error page
   if (targetPage) 
@@ -60,6 +60,7 @@ window.onload = async function() {
   // debug auto reloader, reload every 60 seconds
   // setTimeout(() => { window.location.reload(); }, 30000);
 }
+
 async function updateDadJoke(){
   let el = document.getElementById("dadJoke");
   el.innerHTML = await fetch("https://icanhazdadjoke.com/",{
@@ -74,14 +75,4 @@ async function updateDadJoke(){
       return `"${json.joke}"\n\n<div style="margin: 5px; text-align: right;">-icanhazdadjoke.com</div>`;
     });
 }
-console.log("hi");
-console.log(beginGame);
-beginGame();
-function joinGame(gameId) {
-  connectGame(gameId);
-}
 
-function createNewGame() {
-  beginGame();
-  createGame();
-}
