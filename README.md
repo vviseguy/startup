@@ -1,5 +1,15 @@
 ## Required Class Notes
 
+### Where the project stands
+You can now use the multiplayer functionality!
+1. navigate to the "sign-in" page
+1. enter a username and click "sign-in" (this will give you a player name so that you dont overwrite other people as a guest.. this is a bug that will need to be fixed)
+1. Navigate to the "join-game" page
+1. If you have a code, enter the room code into the provided box and click "join game". Otherwise, select "create game" and "start game". The code for others to join will be visible at the top
+
+Due to difficulties with making the application one page, you may have to use on site links, rather than the "Back" button, as technically the whole thing is just one page.
+Also, the game functionality is limited to only moving at the moment :(
+
 ### Things I have learned in the Simon project
 
 * I don't like doing html without css - even when focusing just on structure. I like to be able to center things, and arrange things using 
