@@ -7,8 +7,7 @@ You can now use the multiplayer functionality!
 1. Navigate to the "join-game" page
 1. If you have a code, enter the room code into the provided box and click "join game". Otherwise, select "create game" and "start game". The code for others to join will be visible at the top
 
-Due to difficulties with making the application one page, you may have to use on site links, rather than the "Back" button, as technically the whole thing is just one page.
-Also, the game functionality is limited to only moving at the moment :(
+Sadly, game functionality is limited to only moving at the moment :(
 
 ### Things I have learned in the Simon project
 
