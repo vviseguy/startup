@@ -42,13 +42,16 @@ function changePage(newPageId, useHistory = true) {
   // unhide the target page
 
   // hide the header for the home page
-  if (targetPageId == HOME_PAGE_ID)
+  if (targetPageId === HOME_PAGE_ID)
     toggleHidden(document.getElementById(HEADER_ID),"hidden");
   else 
     toggleHidden(document.getElementById(HEADER_ID),"visible");
 
-  // if (targetPageId == GAME_START_ID)
-  //   beginGame(); // add back window.beginGame = beginGame; somewhere in that file
+  if (targetPageId === GAME_START_ID){
+    console.log("BEGIN GAME OL FASHIONED");
+    beginGame();
+  }
+    
 
   // if page DNE, go to error page
   

@@ -2,6 +2,8 @@ import { username } from "./credentials.js";
 import { Game } from "./game.js";
 import { beginGame, PLAYER_ENT, startTimeAtTEquals } from "../load_game.js";
 
+let offline = true;
+
 export let currentGame = null;
 // place holder function for connecting to the server
 export async function connectGame(gameId){
@@ -19,6 +21,7 @@ export async function connectGame(gameId){
         .then((json) => {
             console.log(`Creating game with id: ${gameId}`);
             currentGame = new Game(gameId);
+            offline = false;
             return json.t;
         })
         .catch((error) => {console.log(error)});
@@ -39,6 +42,7 @@ export async function createGame() {
         .then((json) => {
             console.log(`Creating game with id: ${json.gameId}`);
             currentGame = new Game(json.gameId);
+            offline = false;
             return json.gameId;
         })
         .catch((error) => {console.log(error)});
@@ -69,10 +73,11 @@ export async function pushPullFrames() {
 document.getElementById("createGame").addEventListener("click", async ()=>{
     const gameCode = await createGame();
     updateGameId(gameCode);
-    changePage('play-game');
     
     startTimeAtTEquals(0);
     beginGame();
+    changePage('play-game');
+    
 });
 document.getElementById("joinGame").addEventListener("click", async ()=>{
     const gameCode = document.getElementById("gameJoinCode").value;
@@ -80,9 +85,9 @@ document.getElementById("joinGame").addEventListener("click", async ()=>{
 
     updateGameId(gameCode);
     
-    changePage('play-game');
     startTimeAtTEquals(startT);
     beginGame();
+    changePage('play-game');
 });
 
 function updateGameId(newGameId){
@@ -90,9 +95,8 @@ function updateGameId(newGameId){
     let gameIdEls = document.getElementsByClassName("currentGameIdHolder");
     console.log("UPDATEGAMEID");
     for (let el of gameIdEls){
-        console.log(el);
-        console.log(newGameId);
-        el.innerText = newGameId;
+        if (offline && el.tagName !== "input") el.innerText = "Offline";
+        else el.innerText = newGameId;
     }
 }
 // note to self, when registering events that happen back in time, from the current time, make sure that all items are loaded into the temporal front (and hecne up to date) before affecting one of the entitites

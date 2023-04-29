@@ -86,32 +86,27 @@ let ALREADY_LOADED = false; // a temporay fix! change pls
 
 export function beginGame(){
   if (!ALREADY_LOADED) {
+    startTimeAtTEquals(0);
     loadGame();
     ALREADY_LOADED = true;
-
   }
-  if (endGame()) {
+  if (clearIntervals()) {
     doFrame();
     gameLoop = setInterval(doFrame, MS_BETWEEN_FRAMES);
     multiplayerLoop = setInterval(updateOtherPLayers, MS_BETWEEN_FRAMES);
     // shut off the game after 500 ms
-    scheduledGameEnd = setTimeout(endGame, 600000); 
+    scheduledGameEnd = setTimeout(clearIntervals, 600000); 
   } else throw new Error("Could not connect game to server.");
-
-  
-
-
-
 }
 
 export function updateCurrentTime(){
   CURRENT_T = (new Date().getTime() - GAME_START_T)/1000;
-  if (CURRENT_T == 0) throw Error("updateCurrentTime() is malfuncioning");
+  if (CURRENT_T < 0) throw Error("updateCurrentTime() is malfuncioning");
   // console.log("t: "+CURRENT_T);
   return CURRENT_T;
 }
 
-function endGame(){
+function clearIntervals(){
   clearTimeout(scheduledGameEnd);
   clearInterval(gameLoop);
   clearInterval(multiplayerLoop);
@@ -122,7 +117,7 @@ export function startTimeAtTEquals(time){
   console.log(`SETTING TIME ${time}`);
   GAME_START_T = new Date().getTime() - time*1000;
 }
-
+window.beginGame = beginGame;
 function doFrame(){
   try{
     updateCurrentTime(); // time coord for this frame
@@ -131,7 +126,7 @@ function doFrame(){
     adjustViewport();
 
   } catch(e){
-    endGame();
+    clearIntervals();
     throw e;
   }
 }
