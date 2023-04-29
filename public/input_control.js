@@ -1,29 +1,33 @@
-export function addListeners(elementId, keyCode, funct){
-    addKeyListeners(keyCode, funct);
-    addMouseAndTouchListeners(elementId, keyCode, funct);
+let listeners = [];
+
+export function addListeners(elementId, keyCode,  listenerFunct){
+    addKeyListeners(keyCode,  listenerFunct);
+    addMouseAndTouchListeners(elementId, keyCode,  listenerFunct);
 }
 
 function addKeyListeners(keyCode, funct){
     let isPressed = false;
 
     function makeKeyDownListener() {
-        document.addEventListener('keydown', (event) => {
+        let listenerFunct = (event) => {
             let code = event.code;
             if (code == keyCode && !isPressed){
                 isPressed = true;
                 funct(keyCode);
             } 
-        });
+        };
+        pushEventListener(document,"keydown", listenerFunct);
     }
 
     function makeKeyUpListener() {
-        document.addEventListener('keyup', (event) => {
+       let listenerFunct = (event) => {
             let code = event.code;
             if (code == keyCode && isPressed){
                 isPressed = false;
                 funct(keyCode);
             }
-        });
+        };
+        pushEventListener(document,"keyup", listenerFunct);
     }
 
     makeKeyDownListener();
@@ -37,45 +41,50 @@ function addMouseAndTouchListeners (elementId, keyCode, funct){
     let numTouchPoints = 0;
 
     function makeMouseDownListener() {
-        element.addEventListener("mousedown", () => {
+        let listenerFunct = () => {
             console.log("mousedown");
             if (numTouchPoints == 0){
                 funct(keyCode);
             } 
             numTouchPoints++;
-        });
+        };
+        pushEventListener(element,"mousedown", listenerFunct);
     }
 
     function makeMouseUpListener() {
-        document.addEventListener("mouseup", () => {
+        let listenerFunct = () => {
             console.log("mouseup");
             if (numTouchPoints > 0){
                 numTouchPoints--;
                 funct(keyCode);
             }
-        });
+        };
+        pushEventListener(document,"mouseup", listenerFunct);
     }
 
 
 
     function makeTouchDownListener() {
-        element.addEventListener("touchstart", () => {
+        let listenerFunct = () => {
             console.log("touchbegin");
             if (numTouchPoints == 0){
                 funct(keyCode);
             } 
             numTouchPoints++;
-        });
+        };
+        
+        pushEventListener(element,"touchstart", listenerFunct);
     }
 
     function makeTouchUpListener() {
-        document.addEventListener("touchend", () => {
+        let listenerFunct = () => {
             console.log("touchend");
             if (numTouchPoints > 0){
                 numTouchPoints--;
                 funct(keyCode);
             }
-        });
+        };
+        pushEventListener(document,"touchend", listenerFunct);
     }
 
     makeMouseDownListener();
@@ -83,4 +92,17 @@ function addMouseAndTouchListeners (elementId, keyCode, funct){
     
     makeTouchDownListener();
     makeTouchUpListener();
+}
+
+function pushEventListener(element, eventStr, listenerFunct){
+    console.log("adding event listener for "+eventStr);
+    element.addEventListener(eventStr, listenerFunct);
+    listeners.push({obj:element, event:eventStr, do:listenerFunct});
+}
+export function removeAllInputListeners(){
+    while (listeners[0]){
+        let listener = listeners.pop();
+        console.log("removing event listener for "+listener.event);
+        listener.obj.removeEventListener(listener.event, listener.do);
+    }
 }

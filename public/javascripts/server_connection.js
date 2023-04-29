@@ -1,13 +1,13 @@
 import { username } from "./credentials.js";
 import { Game } from "./game.js";
-import { beginGame, PLAYER_ENT, startTimeAtTEquals } from "../load_game.js";
+import { beginGame, PLAYER_ENT, startTimeAtTEquals, clearGame} from "../load_game.js";
 
-let offline = true;
+export let offline = true;
 
 export let currentGame = null;
 // place holder function for connecting to the server
 export async function connectGame(gameId){
-    console.log(`Trying to connect to game ${gameId}`);
+    console.log(`Trying to connect to game "${gameId}"`);
     return await fetch(`/api/game/join/${gameId}`, {
         method: 'POST', 
         body: JSON.stringify({
@@ -19,12 +19,18 @@ export async function connectGame(gameId){
         }})
         .then((res) => res.json())
         .then((json) => {
-            console.log(`Creating game with id: ${gameId}`);
+            console.log(`Creating game with id "${gameId}"`);
             currentGame = new Game(gameId);
             offline = false;
             return json.t;
         })
-        .catch((error) => {console.log(error)});
+        .catch((error) => {
+            console.log(`Could not connect to game with ID "${gameId}"`);
+            console.log(error);
+            console.log(`Playing offline instead`);
+            currentGame = new Game(-1);
+            return 0;
+        });
 }
 
 export async function createGame() {
@@ -72,6 +78,7 @@ export async function pushPullFrames() {
 
 document.getElementById("createGame").addEventListener("click", async ()=>{
     const gameCode = await createGame();
+    clearGame();
     updateGameId(gameCode);
     
     startTimeAtTEquals(0);
@@ -82,7 +89,7 @@ document.getElementById("createGame").addEventListener("click", async ()=>{
 document.getElementById("joinGame").addEventListener("click", async ()=>{
     const gameCode = document.getElementById("gameJoinCode").value;
     const startT = await connectGame(gameCode);
-
+    clearGame();
     updateGameId(gameCode);
     
     startTimeAtTEquals(startT);

@@ -1,11 +1,10 @@
-import { updateEntities, jostleEntities, adjustViewport, Entity, EntityFrame, updateOtherPlayers} from "./javascripts/Entity.js";
+import { updateEntities, jostleEntities, adjustViewport, Entity, EntityFrame, updateOtherPlayers, clearEntityInformation} from "./javascripts/Entity.js";
 import { EventCard } from "./javascripts/EventCard.js";
-import { connectGame, currentGame, pushPullFrames } from "./javascripts/server_connection.js";
+import { connectGame, currentGame, pushPullFrames, offline } from "./javascripts/server_connection.js";
 import { LinkedList } from "./javascripts/dataStructures/LinkedList.js";
 import { myColors } from "./javascripts/color_tools.js";
-import { addListeners} from "./input_control.js";
+import { addListeners, removeAllInputListeners} from "./input_control.js";
 import { GAME_BOARD_TEXT } from "./game_board.js";
-
 let GAME_START_T = NaN; // this variable will be set in game init.
 export let CURRENT_T;
 // value of new Date().getTime() when the game starts.
@@ -19,6 +18,12 @@ export const BOARD_TILE_WIDTH = 70;
 const THE_FIRST_SPINJITSU_MASTER = new EventCard("game_creation",3.1415,42);
 export let PLAYER_ENT;
 
+let gameLoop;
+let multiplayerLoop;
+let scheduledGameEnd;
+export let doCollisions = false;
+let ALREADY_LOADED = false; // a temporay fix! change pls
+
 
 function loadGame(){
   // beginGameAtTEquals(0);
@@ -27,6 +32,7 @@ function loadGame(){
   generateGameBoard(GAME_BOARD_TEXT);
 
   const toggleFunct = (k) => {PLAYER_ENT.toggleKey(k);};
+
   addListeners('l-u-arw', 'KeyW', toggleFunct);
   addListeners('l-r-arw', 'KeyD', toggleFunct);
   addListeners('l-l-arw', 'KeyA', toggleFunct);
@@ -78,11 +84,6 @@ function generateGameBoard(game_board_text){
   }
   jostleEntities();
 }
-let gameLoop;
-let multiplayerLoop;
-let scheduledGameEnd;
-export let doCollisions = false;
-let ALREADY_LOADED = false; // a temporay fix! change pls
 
 export function beginGame(){
   if (!ALREADY_LOADED) {
@@ -93,7 +94,7 @@ export function beginGame(){
   if (clearIntervals()) {
     doFrame();
     gameLoop = setInterval(doFrame, MS_BETWEEN_FRAMES);
-    multiplayerLoop = setInterval(updateOtherPLayers, MS_BETWEEN_FRAMES);
+    if (!offline) multiplayerLoop = setInterval(updateOtherPLayers, MS_BETWEEN_FRAMES);
     // shut off the game after 500 ms
     scheduledGameEnd = setTimeout(clearIntervals, 600000); 
   } else throw new Error("Could not connect game to server.");
@@ -131,8 +132,19 @@ function doFrame(){
   }
 }
 async function updateOtherPLayers(){
+  if (offline) return updateOtherPlayers({});
   const frames = await pushPullFrames();
   updateOtherPlayers(frames);
+}
+export function clearGame(){
+  GAME_START_T = NaN;
+  CURRENT_T = undefined;
+  PLAYER_ENT = undefined;
+  clearEntityInformation();
+  clearIntervals();
+  ALREADY_LOADED = false;
+  removeAllInputListeners();
+  GAME_ENV.innerHTML = '';
 }
 // On collisions:
 // (while the top of the priority queue of relevant solids ends before the next from the priority queue of listed movements, take it out

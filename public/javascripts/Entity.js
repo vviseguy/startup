@@ -9,7 +9,7 @@ export const NUM_ENTITY_BUCKETS = NUM_TEAMS + 3;
 
 let temporal_front_time; // current game time
 let temporal_front = Array.from({ length: NUM_ENTITY_BUCKETS }, (_, i) => new Set());
-
+let otherPlayers = new Set();
 let entityBuckets = Array.from({ length: NUM_ENTITY_BUCKETS }, (_, i) => new Set()); // create an array with NUM_ENTITY_BUCKETS amount of sets.
 /**
  * Entity buckets is an array of sets containing entities. The index refers to the team that they're on. These buckets are used for detecting collisions.
@@ -24,7 +24,14 @@ let entityBuckets = Array.from({ length: NUM_ENTITY_BUCKETS }, (_, i) => new Set
  */
 
 let EventDeque = new LinkedList(); // contains event cards. haha get it, its a deque AND a deck --> do we really need a global one?
+export function clearEntityInformation(){
+  temporal_front_time = undefined; // current game time
+  temporal_front = Array.from({ length: NUM_ENTITY_BUCKETS }, (_, i) => new Set());
+  otherPlayers = new Set();
+  entityBuckets = Array.from({ length: NUM_ENTITY_BUCKETS }, (_, i) => new Set());
 
+  EventDeque = new LinkedList();
+}
 function convertCoords(x, y, doFrameOffset = false){
   let scalar = [0.1, 0.1];
 
@@ -76,7 +83,7 @@ export function updateEntities(DEBUG = false){
   if (DEBUG) console.log(PLAYER_ENT.getCoords());
 }
 
-let otherPlayers = new Set();
+
 export function updateOtherPlayers(frames){
   for (let otherPlayer of otherPlayers.values()){
     otherPlayer.kill();
