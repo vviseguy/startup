@@ -45,11 +45,6 @@ export async function createGame() {
 }
 export async function pushPullFrames() {
     if (currentGame == null) return;
-    console.log(JSON.stringify({ 
-        player: username, 
-        frame: PLAYER_ENT.getMostRecentFrame() 
-    }));
-    console.log(username);
     return await fetch(`/api/game/update/${currentGame.id}`, {
         method: 'POST',
         body: JSON.stringify({ 

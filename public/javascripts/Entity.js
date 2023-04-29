@@ -78,8 +78,6 @@ export function updateEntities(DEBUG = false){
 
 let otherPlayers = new Set();
 export function updateOtherPlayers(frames){
-  console.log(frames);
-
   for (let otherPlayer of otherPlayers.values()){
     otherPlayer.kill();
   }
@@ -90,6 +88,8 @@ export function updateOtherPlayers(frames){
     let obj = frames[playerId];
     let frame = new EntityFrame(obj.x, obj.y, obj.t, [obj.dx, obj.dy], obj.eventCard);
     let ent = new Entity('Player', 0, frame);
+    if(hash(playerId) > 0.5) ent.changeColor("#007700");
+    else ent.changeColor("#000077");
     otherPlayers.add(ent);
     ent.updateHTMLElement();
   }
@@ -211,6 +211,11 @@ export class Entity {
           (myCollision, theirCollision) => theirCollision.obj.kill()
         ]; 
         break;
+      case "block":
+        var scalar = 1;
+        this.onCollision = [
+        ]; // normal physics action
+        break;
       case "player":
         var scalar = 0.8;
         this.onCollision = [
@@ -219,8 +224,10 @@ export class Entity {
         ]; // normal physics action
         break;
       default:
-        var scalar = 1;
+        var scalar = 0.8;
         this.onCollision = [
+          (myCollision, theirCollision) => myCollision.obj.handleCollision(theirCollision),
+          // (myCollision, theirCollision) => theirCollision.obj.handleCollision(myCollision)
         ]; // normal physics action
         break;
     }
@@ -656,3 +663,14 @@ export class Entity {
 
 //** END EXPORT STATEMENTS **//
 
+function hash(str){
+  var h = 0,
+    i, chr;
+  if (str.length === 0) return h;
+  for (i = 0; i < str.length; i++) {
+    chr = str.charCodeAt(i);
+    h = ((h << 5) - h) + chr;
+    h |= 0; // Convert to 32bit integer
+  }
+  return h;
+}

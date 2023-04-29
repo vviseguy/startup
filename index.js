@@ -58,7 +58,6 @@ gameRouter.post("/join/:gameId", (req, res) => {
   // 2. send confimration back?? > probably game info
   let game = confi2.getGameById(req.params.gameId);
   game.addPlayer(req.body.player);
-  console.log(game.getTime()+0+0+0+0+0+0+0);
   
   console.log(`${req.body.player} successfully joined the game`);
   res.status(200).send({t:game.getTime(), msg:`${req.body.player} successfully joined the game`});
@@ -104,7 +103,7 @@ gameRouter.post("/update/:gameId", (req, res) => {
   let game = confi2.getGameById(req.params.gameId);
   game.updateFrame(req.body.player, req.body.frame);
 
-  let result = game.getCurrentFrames();
+  let result = game.getCurrentFrames(req.body.player);
   // console.log(result);
   res.send(result);
 });
@@ -129,7 +128,6 @@ userRouter.post('*', (req, res) => {
 
 // Return the application's default page if the path is unknown
 app.use((_req, res) => {
-  console.log("got basic file");
   res.sendFile('index.html', { root: 'public' });
 });
 

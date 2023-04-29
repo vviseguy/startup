@@ -156,11 +156,13 @@ body {
 
 .game-ent {
   position: absolute;
-  z-index: 9;
+  z-index: 10;
+  border-radius: 15%;
 }
 .game-ent.block {
-  position: absolute;
+  z-index: 9;
   z-index: 1;
+  border-radius: 0%;
 }
 .game-ent.player{
   z-index: 10;

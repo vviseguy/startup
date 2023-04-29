@@ -29,14 +29,14 @@
     </div>
   </div>
 
-  <div class="page hidden" id="join-game">
+  <div class="page hidden" id="join-game" title="Join a match">
     Enter a game id
     <input type="text" id="gameJoinCode" class = "currentGameIdHolder" name="game-id" placeholder="Game ID">
     <button class="menuOption" id="joinGame" style="display: inline-block;">Join</button>
     <button class="menuOption" onclick="changePage('create-game')">Create a game</button>
   </div>
 
-  <div class="page hidden" id="create-game">
+  <div class="page hidden" id="create-game" title="Create a match">
     create a game
     <div class = "menuOption" id="createGame">start game</div>
     <p onclick="changePage('home')">Return to home screen</p>
@@ -67,15 +67,15 @@
 
   </div>
 
-  <div class="page hidden" id="tutorial">
+  <div class="page hidden" id="tutorial" title="How to Play">
     <h1>How to play</h1>
     <p>Use the arrow keys to navigate, and WASD to shoot</p>
     <p>For your convenience the game loop that updates the game environment will stop 
        after 3 minutes. (Otherwise it would continue to run when you switch tabs.) </p>
-    <p onclick="changePage('%last-page')">Return to previous page</p>
+    <p onclick="history.back()">Return to previous page</p>
   </div>
 
-  <div class="page hidden" id="sign-in">
+  <div class="page hidden" id="sign-in" title="Sign in">
     This is the sign in page. Please don't use your secure passwords, this site isnt meant to be super secure and cant handle the liability of you trusting us with your information <br>
     Username
     <input type="text" id="username" name="username" placeholder="username">
@@ -83,21 +83,21 @@
     Password
     <input type="text" id="password" name="password" placeholder="*******">
     <div class="menuOption" id="signIn">Sign-in</div>
-    <p onclick="changePage('%last-page')">Return to previous page</p>
+    <p onclick="history.back()">Return to previous page</p>
   </div>
 
-  <div class="page hidden" id="account-dashboard">
+  <div class="page hidden" id="account-dashboard" title="My Account">
     This is your account dashboard
     <p onclick="changePage('settings')">settings</p>
-    <p onclick="changePage('%last-page')">Return to previous page</p>
+    <p onclick="history.back()">Return to previous page</p>
   </div>
 
-  <div class="page hidden" id="settings">
+  <div class="page hidden" id="settings" title="My Settings">
     This is the settings page
-    <p onclick="changePage('%last-page')">Return to previous page</p>
+    <p onclick="history.back()">Return to previous page</p>
   </div>
 
-  <div class="page hidden" id="error">
+  <div class="page hidden" id="error" title="Error 404">
     Error <br><br>
     I'm sorry, we cannot find the page you are lookinig for
     <p onclick="changePage('home')">Return to home screen</p>

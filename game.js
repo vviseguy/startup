@@ -32,9 +32,9 @@ class Game {
         }
         this.players.set(player, frame);
     }
-    getCurrentFrames(){ // returns the most recent frame of all other players
+    getCurrentFrames(player){ // returns the most recent frame of all other players
         let obj = Object.fromEntries(this.players);
-        delete obj[this.id];
+        delete obj[player];
         return JSON.stringify(obj);
     }
     getTime(){

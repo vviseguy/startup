@@ -10,7 +10,7 @@ let GAME_START_T = NaN; // this variable will be set in game init.
 export let CURRENT_T;
 // value of new Date().getTime() when the game starts.
 
-const MS_BETWEEN_FRAMES = 50;
+const MS_BETWEEN_FRAMES = 15;
 
 
 export const GAME_ENV = document.getElementById("gameFrame");
@@ -137,7 +137,6 @@ function doFrame(){
 }
 async function updateOtherPLayers(){
   const frames = await pushPullFrames();
-  console.log(frames);
   updateOtherPlayers(frames);
 }
 // On collisions:
