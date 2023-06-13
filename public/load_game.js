@@ -59,6 +59,7 @@ function generateGameBoard(game_board_text){
     switch(c){
       case '#':
         nextBlock = new Entity("block", -2, nextFrame); // changed team from -1
+        nextBlock.changeColorUsingPreset(1);
         break;
       case '-':
         nextBlock = new Entity("block", -2, nextFrame); 
@@ -74,6 +75,7 @@ function generateGameBoard(game_board_text){
         PLAYER_ENT.changeColor("#770000");
       case ' ':
         nextBlock = new Entity("block", -2, nextFrame); // changed team from -1
+        nextBlock.changeColorUsingPreset(0);
         break;
       default:
         nextBlock = new Entity("player", -2, nextFrame); // changed team from -1

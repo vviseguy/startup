@@ -290,10 +290,10 @@ export class Entity {
   changeColor(backgroundColor){
     this.element.style.background = backgroundColor;
   }
-  changeColorUsingPreset(colorIndex){
+  changeColorUsingPreset(colorIndex, spread){
     colorIndex = colorIndex < 0 ? 0 : colorIndex % myColors.length; // ensure the index is within the bounds
 
-    this.element.style.background = fuzzColor(myColors[colorIndex]);
+    this.element.style.background = fuzzColor(myColors[colorIndex], spread);
   }
   getFrameAt(t){ // get an Entity's location at a specific point in time
     const pastFramesIndx = tToFrameIndex(t);

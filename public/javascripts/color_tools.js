@@ -1,5 +1,5 @@
 export const myColors = [
-    "#d6d6d6", // white
+    "#e0e0e0", // white
     "#615F5F", // black
     "#817F7F", // dark-grey
     "#c4c4c4", // grey
@@ -9,7 +9,7 @@ export const myColors = [
   
   ];
 export function fuzzColor(color, range = 50) {
-    let fuzz = Math.random() * range;
+    let fuzz = getRandom(range);
   
     let r = fuzzHex(color.substring(1, 3), fuzz);
     let g = fuzzHex(color.substring(3, 5), fuzz);
@@ -20,7 +20,7 @@ export function fuzzColor(color, range = 50) {
     /* takes a two byte string with a hexadecimal value and 
       returns a two byte string that is a random amount off (up to the range)
     */
-    function fuzzHex(hex, skew = Math.random() * range) {
+    function fuzzHex(hex, skew = getRandom(range)) {
       let hexAsInt = toInt(hex);
       hexAsInt += skew;
       return toHex(Math.round(createBound(hexAsInt)));
@@ -56,4 +56,8 @@ function toInt(string) {
     value += hexValues.indexOf(string[i]);
   }
   return value;
+}
+function getRandom(range, center = 0){
+  const seed = Math.pow(Math.random(), 2.4) / 2;
+  return (Math.random() > 0.5? 1 : -1) * seed * range + center;
 }

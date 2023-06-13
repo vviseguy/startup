@@ -1,6 +1,6 @@
 const config = require("./game.js");
 
-const MAX_ACTIVE_GAMES = 100;
+const MAX_ACTIVE_GAMES = 500;
 let activeGames = new Map();
 
 

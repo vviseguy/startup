@@ -8,29 +8,7 @@ export let currentGame = null;
 // place holder function for connecting to the server
 export async function connectGame(gameId){
     console.log(`Trying to connect to game "${gameId}"`);
-    return await fetch(`/api/game/join/${gameId}`, {
-        method: 'POST', 
-        body: JSON.stringify({
-            player: username
-        }),
-        headers: {
-            'Content-type': 'application/json; charset=UTF-8',
-            'Accept': "application/json"
-        }})
-        .then((res) => res.json())
-        .then((json) => {
-            console.log(`Creating game with id "${gameId}"`);
-            currentGame = new Game(gameId);
-            offline = false;
-            return json.t;
-        })
-        .catch((error) => {
-            console.log(`Could not connect to game with ID "${gameId}"`);
-            console.log(error);
-            console.log(`Playing offline instead`);
-            currentGame = new Game(-1);
-            return 0;
-        });
+    return awaitcd
 }
 
 export async function createGame() {
