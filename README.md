@@ -9,6 +9,8 @@ You can now use the multiplayer functionality!
 
 Sadly, game functionality is limited to only moving at the moment :(
 
+You can now get random dad jokes on the home page! (Taken from the icanhazdadjoke.com api)
+
 ### Things I have learned in the Simon project
 
 * I don't like doing html without css - even when focusing just on structure. I like to be able to center things, and arrange things using 
